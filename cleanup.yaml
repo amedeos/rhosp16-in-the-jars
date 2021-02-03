@@ -1,0 +1,156 @@
+- name: Clean updercloud
+  hosts: localhost
+  vars_files:
+    - variables.yaml
+    - overcloud-ansible-nodes.json
+  tasks:
+  - name: Add undercloud group-host for cleanup
+    add_host:
+      name: "{{ undercloud_n }}.{{ domain }}"
+      ansible_ssh_private_key_file: ansible-ssh/id_rsa
+      ansible_ssh_user: root
+      groups:
+        - undercloud
+
+  - name: Add all hypervisor group-host
+    add_host:
+      name: "{{ item.hypervisor_name }}"
+      ansible_ssh_user: "{{ item.hypervisor_user }}"
+      ansible_ssh_private_key_file: "{{ item.hypervisor_ssh_key }}"
+      groups:
+        - hypervisor_host
+    with_items:
+      - "{{ undercloud_nodes }}"
+      - "{{ controller_nodes }}"
+      - "{{ compute_nodes }}"
+      - "{{ ceph_nodes }}"
+    when: item.hypervisor_name != "localhost"
+
+- name: Clean undercloud
+  hosts: undercloud
+  vars_files:
+    - variables.yaml
+    - overcloud-ansible-nodes.json
+  ignore_errors: True
+  ignore_unreachable: True
+  gather_facts: False
+  tasks:
+  - name: Unregister undercloud host
+    redhat_subscription:
+      state: absent
+    ignore_errors: True
+
+- name: Cleanup
+  hosts:
+    - localhost
+    - hypervisor_host
+  vars_files:
+    - variables.yaml
+    - overcloud-ansible-nodes.json
+  tasks:
+  - name: Destroy virsh domain
+    virt:
+      name: "{{ item.name }}"
+      state: destroyed
+    delegate_to: "{{ item.hypervisor_name }}"
+    run_once: True
+    with_items:
+      - "{{ undercloud_nodes }}"
+      - "{{ controller_nodes }}"
+      - "{{ compute_nodes }}"
+      - "{{ ceph_nodes }}"
+    ignore_errors: True
+
+  - name: Undefine virsh domain
+    virt:
+      name: "{{ item.name }}"
+      command: undefine
+    delegate_to: "{{ item.hypervisor_name }}"
+    run_once: True
+    with_items:
+      - "{{ undercloud_nodes }}"
+      - "{{ controller_nodes }}"
+      - "{{ compute_nodes }}"
+      - "{{ ceph_nodes }}"
+    ignore_errors: True
+ 
+  - name: Remove files
+    file:
+      path: "{{ item }}"
+      state: absent
+    with_items:
+      - /tmp/ifcfg-eth0
+      - /tmp/ifcfg-eth1
+      - /tmp/ifcfg-eth1.2002
+      - /tmp/ifcfg-eth1.2003
+      - ansible-ssh
+      - templates.tar.bz2
+      - /tmp/instackenv.tmp
+      - /tmp/instackenv.json
+
+  - name: Remove qcow2 files
+    file:
+      path: "{{ item.hypervisor_image_dir }}/{{ item.name }}.qcow2"
+      state: absent
+    delegate_to: "{{ item.hypervisor_name }}"
+    run_once: True
+    with_items:
+      - "{{ undercloud_nodes }}"
+      - "{{ controller_nodes }}"
+      - "{{ compute_nodes }}"
+      - "{{ ceph_nodes }}"
+    ignore_errors: True
+
+  - name: Remove qcow2 files
+    file:
+      path: "{{ image_dir }}/{{ item }}"
+      state: absent
+    with_items:
+      - rhel8.qcow2
+      - rhel8-100G.qcow2
+      - rhel8-100G-no-eth0.qcow2
+      - rhel8-undercloud.qcow2
+      - undercloud.qcow2
+      - "{{ image }}"
+
+  - name: Remove qcow2 files
+    file:
+      path: "{{ image_dir_undercloud }}/{{ item }}"
+      state: absent
+    with_items:
+      - rhel8.qcow2
+      - rhel8-100G.qcow2
+      - rhel8-100G-no-eth0.qcow2
+      - rhel8-undercloud.qcow2
+      - undercloud.qcow2
+      - "{{ image }}"
+
+  - name: Remove ceph qcow2 files
+    shell: |
+      rm -f "{{ item.hypervisor_image_dir }}/{{ item.name }}-*.qcow2"
+    delegate_to: "{{ item.hypervisor_name }}"
+    run_once: True
+    with_items:
+      - "{{ ceph_nodes }}"
+
+  - name: Remove ssh known hosts
+    known_hosts:
+      name: "{{ item.1 }}"
+      path: "{{ item.0 }}"
+      state: absent
+    with_nested:
+      - [ '/root/.ssh/known_hosts']
+      - [ '{{ undercloud_n }}', '{{ undercloud_n }}.{{ domain }}' ]
+
+  - name: Delete virtualbmc interface
+    shell: |
+      vbmc delete "{{ item.name }}"
+    delegate_to: "{{ item.hypervisor_name }}"
+    run_once: True
+    with_items:
+      - "{{ undercloud_nodes }}"
+      - "{{ controller_nodes }}"
+      - "{{ compute_nodes }}"
+      - "{{ ceph_nodes }}"
+
+

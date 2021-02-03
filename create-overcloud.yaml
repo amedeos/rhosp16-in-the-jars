@@ -1,0 +1,17 @@
+- name: Create Controller Nodes
+  import_playbook: create-controllers.yaml
+  tags:
+    - create-controllers
+
+- name: Create Compute Nodes
+  import_playbook: create-computes.yaml
+  tags:
+    - create-computes
+
+- name: Create Ceph Nodes
+  import_playbook: create-ceph.yaml
+  tags:
+    - create-ceph
+  when:
+    - ceph_external != "1"
+

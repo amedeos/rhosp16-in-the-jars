@@ -1,0 +1,164 @@
+bridge_n: br0
+libguestfs_path: /usr/share/guestfs/appliance/
+ssh_pub: files/.ssh/id_rsa.pub
+ssh_key: files/.ssh/id_rsa
+secure_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          35333131636365363561616432393966386464656461323862643664383165373539396636646264
+          3062383966616539633330393934666337396339636133340a333833623932353930373866656534
+          65356134653431636335376464613762663263383633333034663632626262666235323938333364
+          3033303735663264630a343738316634376531643332393466613635666662396235356265623833
+          6635
+rh_subcription_user: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          66626133643338336431653863326539333039663461303631396435393361616436613030636533
+          3139376531663533333263663038353933656535326331330a666431376631633061663932376565
+          36396139386536376135356163613236306630353133316531386132333331353062353834353536
+          3164313634353036310a666530383338623662646433643832373464356565323333633862643735
+          33356166363739336631323334383739353732363137313435633065333735346162
+rh_subcription_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          37626431623262326432313462643662666134396637366630316363623635636436643732363732
+          3361663464363530396161333837333261313033303639620a613237643765393230626637653563
+          62356338333138363565333539363130353231666138313832373434633765303366346239643139
+          3539356361346239300a383465646362306462306361353538316134376237623234303335633039
+          6562
+rh_subcription_pool: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          31636530326666343834363636333064643139313163323763633133363263643736653234343930
+          3161336265633363363739383461393039326338316639630a313336333430373834623035323561
+          65326334363866633634373836313165313136316565656236653937393136316662343837663836
+          3566633264616161320a306639373538376265396262373733363761643537613962326631353033
+          65623664313231306261646134663930323433386238363032656634353864383462623061356561
+          3536333232376530633563653663313733323534343738363538
+dns_ip: 1.1.1.1
+dns_ip_undercloud: 192.168.122.1
+#lb_ip: 192.168.122.246
+undercloud_ip: 192.168.122.30
+undercloud_ip_prv: 192.168.201.30
+undercloud_netmask: 24
+undercloud_local_interface: eth1
+undercloud_public_vip: 192.168.201.100
+undercloud_admin_vip: 192.168.201.101
+undercloud_dhcp_start: 192.168.201.102
+undercloud_dhcp_end: 192.168.201.130
+undercloud_network_cidr: 192.168.201.0
+undercloud_network_gateway: 192.168.201.1
+undercloud_discovery_iprange: 192.168.201.131,192.168.201.160
+undercloud_inspection_iprange: 192.168.201.131,192.168.201.160
+domain: example.com
+undercloud_n: undercloud
+pre_provision: 0
+ssl: 0
+dcn: 0
+hci: 0
+iha: 0
+saf: 0
+bmaas: 0
+ovn: 0
+dvr: 0
+compose: 0
+ocp_osp: 0
+ffu: 0
+skip_deploy: 0
+undercloud_memory: 24576
+undercloud_cpu: 4
+controller_memory: 16384
+controller_cpu: 2
+compute_memory: 12288
+compute_cpu: 2
+ceph_memory: 12288
+ceph_cpu: 2
+#lb_memory: 8192
+image_dir: /var/lib/libvirt/images
+image_dir_undercloud: /var/lib/libvirt/imagesssd
+image: rhel-8.2-update-2-x86_64-kvm.qcow2
+image_location: http://192.168.1.70/images/rhel-8.2-update-2-x86_64-kvm.qcow2
+image_instance: cirros-0.5.1-x86_64-disk.img
+image_instance_location: http://download.cirros-cloud.net/0.5.1/cirros-0.5.1-x86_64-disk.img
+num_controller: 3
+ctrl_n: controller-1 controller-2 controller-3
+ctrl_n_list:
+  - controller-1
+  - controller-2
+  - controller-3
+num_compute: 2
+compute_n: compute-1 compute-2
+compute_n_list:
+  - compute-1
+  - compute-2
+num_ceph: 3
+ceph_n: ceph-1 ceph-2 ceph-3
+ceph_n_list:
+  - ceph-1
+  - ceph-2
+  - ceph-3
+all_n: "{{ ctrl_n }} {{ compute_n }} {{ ceph_n }}"
+all_n_external_ceph: "{{ ctrl_n }} {{ compute_n }}"
+#provisioning_networks: provisioning
+osp_version: 13
+flavors: control compute ceph
+#ansible_python_interpreter: /usr/libexec/platform-python
+split_stack: 0
+cell_enabled: 0
+controller_1_ip: 192.168.201.31
+controller_2_ip: 192.168.201.32
+controller_3_ip: 192.168.201.33
+compute_1_ip: 192.168.201.41
+compute_2_ip: 192.168.201.42
+ceph_1_ip: 192.168.201.51
+ceph_2_ip: 192.168.201.52
+ceph_3_ip: 192.168.201.53
+#PublicVirtualFixedIPs
+public_virtual_fixed_ips: 192.168.203.150
+#ControlFixedIPs
+control_fixed_ips: 192.168.201.150
+hypervisor_networks:
+  - bridge
+  - bridge
+pre_provisioned_nodes:
+  - controller-1
+  - controller-2
+  - controller-3
+  - compute-1
+  - compute-2
+  - ceph-1
+  - ceph-2
+  - ceph-3
+supported_os: rhel8
+supported_osp_versions:
+  - 13
+  - 16
+ceph_external_nodes:
+  - ceph-1
+  - ceph-2
+  - ceph-3
+  - mon-1
+  - mon-2
+  - mon-3
+  - ceph-ansible
+pre_provisioned_nodes_with_ceph_external:
+  - controller-1
+  - controller-2
+  - controller-3
+  - compute-1
+  - compute-2
+  - ceph-1
+  - ceph-2
+  - ceph-3
+  - mon-1
+  - mon-2
+  - mon-3
+  - ceph-ansible
+ceph_external: 0
+stf: 0
+ssl_ansible: 0
+### floating ip network
+fip_vlanid: 2007
+fip_subnet: 192.168.207.0/24
+fip_pool_start: 192.168.207.100
+fip_pool_end: 192.168.207.200
+fip_gw: 192.168.207.1
+fip_instance_1: 192.168.207.211
+fip_instance_2: 192.168.207.212
+skip_registration: False

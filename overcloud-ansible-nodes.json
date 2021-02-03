@@ -1,0 +1,109 @@
+{
+    "undercloud_nodes": [
+        {
+            "name": "undercloud",
+            "state": "present",
+            "hypervisor_name": "localhost",
+            "hypervisor_user": "root",
+            "hypervisor_ssh_key": "~/.ssh/id_rsa",
+            "hypervisor_image_dir": "/var/lib/libvirt/imagesssd",
+            "vbmc_pre_cmd": "",
+            "vbmc_ip": "192.168.201.12",
+            "vbmc_port": "623"
+        }
+     ],
+    "controller_nodes": [
+        {
+            "name": "controller-1",
+            "state": "present",
+            "hypervisor_name": "amelab01.example.com",
+            "hypervisor_user": "root",
+            "hypervisor_ssh_key": "~/.ssh/id_rsa",
+            "hypervisor_image_dir": "/var/lib/libvirt/images",
+            "vbmc_pre_cmd": "",
+            "vbmc_ip": "192.168.201.111",
+            "vbmc_port": "623"
+        },
+        {
+            "name": "controller-2",
+            "state": "present",
+            "hypervisor_name": "amelab01.example.com",
+            "hypervisor_user": "root",
+            "hypervisor_ssh_key": "~/.ssh/id_rsa",
+            "hypervisor_image_dir": "/var/lib/libvirt/images",
+            "vbmc_pre_cmd": "",
+            "vbmc_ip": "192.168.201.112",
+            "vbmc_port": "623"
+        },
+        {
+            "name": "controller-3",
+            "state": "present",
+            "hypervisor_name": "amelab01.example.com",
+            "hypervisor_user": "root",
+            "hypervisor_ssh_key": "~/.ssh/id_rsa",
+            "hypervisor_image_dir": "/var/lib/libvirt/images",
+            "vbmc_pre_cmd": "",
+            "vbmc_ip": "192.168.201.113",
+            "vbmc_port": "623"
+        }
+    ],
+    "compute_nodes": [
+        {
+            "name": "compute-1",
+            "state": "present",
+            "hypervisor_name": "amelab01.example.com",
+            "hypervisor_user": "root",
+            "hypervisor_ssh_key": "~/.ssh/id_rsa",
+            "hypervisor_image_dir": "/var/lib/libvirt/images",
+            "vbmc_pre_cmd": "",
+            "vbmc_ip": "192.168.201.114",
+            "vbmc_port": "623"
+        },
+        {
+            "name": "compute-2",
+            "state": "present",
+            "hypervisor_name": "amelab01.example.com",
+            "hypervisor_user": "root",
+            "hypervisor_ssh_key": "~/.ssh/id_rsa",
+            "hypervisor_image_dir": "/var/lib/libvirt/images",
+            "vbmc_pre_cmd": "",
+            "vbmc_ip": "192.168.201.115",
+            "vbmc_port": "623"
+        },
+    ],
+    "ceph_nodes": [
+        {
+            "name": "ceph-1",
+            "state": "present",
+            "hypervisor_name": "localhost",
+            "hypervisor_user": "root",
+            "hypervisor_ssh_key": "~/.ssh/id_rsa",
+            "hypervisor_image_dir": "/var/lib/libvirt/imagesssd",
+            "vbmc_pre_cmd": "",
+            "vbmc_ip": "192.168.201.13",
+            "vbmc_port": "623"
+        },
+        {
+            "name": "ceph-2",
+            "state": "present",
+            "hypervisor_name": "localhost",
+            "hypervisor_user": "root",
+            "hypervisor_ssh_key": "~/.ssh/id_rsa",
+            "hypervisor_image_dir": "/var/lib/libvirt/imagesssd",
+            "vbmc_pre_cmd": "",
+            "vbmc_ip": "192.168.201.14",
+            "vbmc_port": "623"
+        },
+        {
+            "name": "ceph-3",
+            "state": "present",
+            "hypervisor_name": "localhost",
+            "hypervisor_user": "root",
+            "hypervisor_ssh_key": "~/.ssh/id_rsa",
+            "hypervisor_image_dir": "/var/lib/libvirt/imagesssd",
+            "vbmc_pre_cmd": "",
+            "vbmc_ip": "192.168.201.15",
+            "vbmc_port": "623"
+        }
+    ]
+}
