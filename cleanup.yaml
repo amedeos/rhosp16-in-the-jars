@@ -142,6 +142,15 @@
       - [ '/root/.ssh/known_hosts']
       - [ '{{ undercloud_n }}', '{{ undercloud_n }}.{{ domain }}' ]
 
+  - name: Remove files and directories
+    file:
+      path: "{{ item }}"
+      state: absent
+    with_items:
+      - "hosts-undercloud"
+      - "/tmp/instackenv-single"
+      - "/tmp/instackenv-fetched"
+
   - name: Delete virtualbmc interface
     shell: |
       vbmc delete "{{ item.name }}"
@@ -152,5 +161,4 @@
       - "{{ controller_nodes }}"
       - "{{ compute_nodes }}"
       - "{{ ceph_nodes }}"
-
 
