@@ -5,3 +5,4 @@ ansible-ssh
 # for now remove templates directory
 templates
 *.temp
+hosts-undercloud

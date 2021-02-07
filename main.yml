@@ -8,3 +8,7 @@
 - import_playbook: create-overcloud.yaml
   tags:
     - create-overcloud
+
+- import_playbook: prepare-undercloud.yaml
+  tags:
+    - prepare-undercloud

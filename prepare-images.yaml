@@ -84,7 +84,7 @@
         IPADDR={{ undercloud_ip }}
         NETMASK=255.255.255.0
         GATEWAY=192.168.122.1
-        NM_CONTROLLED=no
+        NM_CONTROLLED=yes
         DNS1={{ dns_ip_undercloud }}
     delegate_to: "{{ item.hypervisor_name }}"
     run_once: True

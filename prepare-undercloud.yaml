@@ -1,0 +1,267 @@
+- name:  Add hypervisor host in inventory
+  hosts: localhost
+  vars_files:
+    - variables.yaml
+    - overcloud-ansible-nodes.json
+  tasks:
+  - name: Add all hypervisor group-host
+    add_host:
+      name: "{{ item.hypervisor_name }}"
+      ansible_ssh_user: "{{ item.hypervisor_user }}"
+      ansible_ssh_private_key_file: "{{ item.hypervisor_ssh_key }}"
+      groups:
+        - hypervisor_host
+    with_items: "{{ undercloud_nodes }}"
+    when: item.hypervisor_name != "localhost"
+
+- name:  Build Undercloud VM/Node
+  hosts:
+    - localhost
+    - hypervisor_host
+  vars_files:
+    - variables.yaml
+    - overcloud-ansible-nodes.json
+  tasks:
+  - name: Copying Template Image to create undercloud. RHEL8
+    copy:
+      src: "{{ item.hypervisor_image_dir }}/rhel8-undercloud.qcow2"
+      dest: "{{ item.hypervisor_image_dir }}/undercloud.qcow2"
+    delegate_to: "{{ item.hypervisor_name }}"
+    run_once: True
+    with_items: "{{ undercloud_nodes }}"
+
+  - name: Defining the undercloud vm
+    shell: |
+      virt-install --ram {{ undercloud_memory }} --vcpus {{ undercloud_cpu }} --os-variant rhel8.2 --disk path={{ item.hypervisor_image_dir }}/undercloud.qcow2,device=disk,bus=virtio,format=qcow2 --noautoconsole --vnc --network network:default --network bridge:{{ bridge_n }} --name {{ item.name }} --cpu host-passthrough --dry-run --print-xml > /tmp/{{ item.name }}.xml
+      virsh define /tmp/{{ item.name }}.xml
+    delegate_to: "{{ item.hypervisor_name }}"
+    run_once: True
+    with_items: "{{ undercloud_nodes }}"
+
+  # TODO: check ip address available in the hypervisor
+  - name: Create virtualbmc interface
+    shell: |
+      vbmc add "{{ item.name }}" --address "{{ item.vbmc_ip }}" --port "{{ item.vbmc_port }}" --username admin --password "{{ secure_password }}"
+      vbmc start "{{ item.name }}"
+    delegate_to: "{{ item.hypervisor_name }}"
+    run_once: True
+    with_items: "{{ undercloud_nodes }}"
+
+  - name: Starting undercloud vm
+    virt:
+      name: "{{ item.name }}"
+      state: running
+    delegate_to: "{{ item.hypervisor_name }}"
+    run_once: True
+    with_items: "{{ undercloud_nodes }}"
+
+  - name: Delete templates.tar.bz2
+    file:
+      path: templates.tar.bz2
+      state: absent
+
+  - name: Sleeping till ssh on undercloud vm is up
+    wait_for:
+      port: 22
+      host: "{{ undercloud_ip }}"
+      delay: 20
+      timeout: 300
+
+  - name: Remove temp directory for ssh key
+    file:
+      path: ansible-ssh
+      state: absent
+
+  - name: Create temp directory for ssh key
+    file:
+      path: ansible-ssh
+      state: directory
+      mode: '0700'
+
+  - name: Write ssh key
+    template:
+      dest: "ansible-ssh/id_rsa"
+      src: "{{ ssh_key }}"
+      mode: 0600
+
+  - name: Add newline at the end of ssh key
+    shell: |
+      echo  >> ansible-ssh/id_rsa
+
+  - name: Add undercloud group-host
+    add_host:
+      name: "{{ undercloud_n }}.{{ domain }}"
+      ansible_ssh_private_key_file: ansible-ssh/id_rsa
+      ansible_ssh_user: root
+      groups:
+        - undercloud
+
+  - name: Write commodity hosts-undercloud file
+    copy:
+      dest: hosts-undercloud
+      content: |
+        [undercloud]
+        "{{ undercloud_n }}.{{ domain }} ansible_ssh_private_key_file=ansible-ssh/id_rsa ansible_ssh_user=root"
+
+- name:  Prepare Undercloud Node
+  hosts: undercloud
+  vars_files:
+    - variables.yaml
+    - overcloud-ansible-nodes.json
+  tasks:
+  - name: Setting up hostname
+    hostname:
+      name: "undercloud.{{ domain }}"
+
+  - name: Set timezone to UTC
+    timezone:
+      name: UTC
+
+  - name: Registering Undercloud
+    redhat_subscription:
+      state: present
+      username: "{{ rh_subcription_user }}"
+      password: "{{ rh_subcription_password }}"
+      force_register: True
+
+  - name: Attach poolid
+    shell: |
+      subscription-manager attach --pool={{ rh_subcription_pool }}
+
+  - name: Set rhel release to 8.2
+    shell: |
+      subscription-manager release --set=8.2
+
+  - name: Set repository for the undercloud
+    shell: |
+      subscription-manager repos --disable='*' --enable=rhel-8-for-x86_64-baseos-eus-rpms --enable=rhel-8-for-x86_64-appstream-eus-rpms --enable=rhel-8-for-x86_64-highavailability-eus-rpms --enable=ansible-2.9-for-rhel-8-x86_64-rpms --enable=openstack-16.1-for-rhel-8-x86_64-rpms --enable=fast-datapath-for-rhel-8-x86_64-rpms --enable=advanced-virt-for-rhel-8-x86_64-rpms --enable=rhceph-4-tools-for-rhel-8-x86_64-rpms
+
+  - name: Clean yum cache
+    command: yum clean all
+
+  - name: Install network-scripts
+    dnf:
+      name:
+        - network-scripts
+
+  - name: Disable NetworkManager for eth0
+    shell: |
+      sed -i 's/NM_CONTROLLED=yes/NM_CONTROLLED=no/g' /etc/sysconfig/network-scripts/ifcfg-eth0
+
+  - name: Enable network.service
+    systemd:
+      name: network
+      daemon_reload: True
+      enabled: True
+
+  - name: Disable NetworkManager
+    systemd:
+      name: NetworkManager
+      enabled: False
+
+  - name: Reboot undercloud
+    reboot:
+
+  - name: Set the container-tools repository to version 2.0
+    shell: |
+      dnf module disable -y container-tools:rhel8
+      dnf module enable -y container-tools:2.0
+
+  - name: Set the virt repository module to 8.2
+    shell: |
+      dnf module disable -y virt:rhel
+      dnf module enable -y virt:8.2
+
+  - name: Updating system to latest version
+    dnf:
+      name: '*'
+      state: latest
+
+  - name: Reboot undercloud
+    reboot:
+
+  - name: Install Basic Required Packages
+    dnf:
+      name:
+        - wget
+        - mlocate
+        - facter
+        - python3-tripleoclient
+        - libvirt
+        - libguestfs-tools
+        - sshpass
+        - crudini
+        - ceph-ansible
+        - vim-enhanced
+        - tmux
+        - rhosp-director-images
+        - python3-novajoin
+        - iptables
+        - python3-ipalib
+        - python3-ipaclient
+        - krb5-devel
+
+  - name: Create User Stack
+    user:
+      name: stack
+      password: "{{ secure_password }}"
+
+  - name: Assign sudo power to stack user
+    copy:
+      dest: /etc/sudoers.d/stack
+      content: |
+        stack ALL=(root) NOPASSWD:ALL
+
+  - name: Setting proper permission to /etc/sudoers.d/stack
+    file:
+      path: /etc/sudoers.d/stack
+      mode: '0440'
+
+  - name: Disable Libvirtd
+    systemd:
+      name: libvirtd
+      enabled: no
+
+  - name: Creates /home/stack/.ssh directory
+    file:
+      path: /home/stack/.ssh
+      owner: stack
+      group: stack
+      mode: 0700
+      state: directory
+
+  - name: Copy Root Authorized Keys to stack User
+    copy:
+      src: /root/.ssh/authorized_keys
+      dest: /home/stack/.ssh/authorized_keys
+      remote_src: yes
+
+  - name: Copy ssh hey
+    copy:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      owner: stack
+      group: stack
+      mode: "{{ item.mode }}"
+    with_items:
+      - { src: files/.ssh/id_rsa, dest: /home/stack/.ssh/id_rsa, mode: "0600" }
+      - { src: files/.ssh/id_rsa.pub, dest: /home/stack/.ssh/id_rsa.pub, mode: "0644" }
+
+  - name: Add newline at the end of ssh key
+    shell: |
+      echo  >> /home/stack/.ssh/id_rsa
+
+  - name: Setting proper ownership to /home/stack/.ssh/authorized_keys
+    file:
+      path: /home/stack/.ssh/authorized_keys
+      owner: stack
+      group: stack
+
+  - name: Setting Up Postrouting nat Rules using iptables
+    iptables:
+      table: nat
+      chain: POSTROUTING
+      out_interface: "{{ undercloud_local_interface }}"
+      jump: MASQUERADE
+
+

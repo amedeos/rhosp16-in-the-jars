@@ -69,7 +69,7 @@
             "vbmc_pre_cmd": "",
             "vbmc_ip": "192.168.201.115",
             "vbmc_port": "623"
-        },
+        }
     ],
     "ceph_nodes": [
         {

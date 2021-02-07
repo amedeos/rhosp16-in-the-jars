@@ -21,8 +21,6 @@ if [ $retVal -ne 0 ]; then
     exit $retVal
 fi
 
-exit
-
 #prepare undercloud
 echo "Run prepare-undercloud"
 $ANSIBLE_PLAYBOOK --vault-password-file $VAULT_FILE --tags prepare-undercloud main.yml
@@ -31,6 +29,8 @@ if [ $retVal -ne 0 ]; then
     echo "Error in prepare-undercloud"
     exit $retVal
 fi
+
+exit
 
 #install undercloud
 echo "Run install-undercloud"
