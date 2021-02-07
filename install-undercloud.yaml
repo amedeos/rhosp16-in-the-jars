@@ -1,0 +1,209 @@
+- name:  Add hypervisor host in inventory
+  hosts: localhost
+  vars_files:
+    - variables.yaml
+    - overcloud-ansible-nodes.json
+  tasks:
+  - name: Add all hypervisor group-host
+    add_host:
+      name: "{{ item.hypervisor_name }}"
+      ansible_ssh_user: "{{ item.hypervisor_user }}"
+      ansible_ssh_private_key_file: "{{ item.hypervisor_ssh_key }}"
+      groups:
+        - hypervisor_host
+    with_items:
+      - "{{ controller_nodes }}"
+      - "{{ compute_nodes }}"
+      - "{{ ceph_nodes }}"
+    when: item.hypervisor_name != "localhost"
+
+  - name: Generating instackenv.json - Step 1
+    shell:
+      cmd: |
+        rm -f /tmp/instackenv.tmp
+        rm -f /tmp/instackenv.json
+        rm -rf /tmp/instackenv-single
+        rm -rf /tmp/instackenv-fetched
+        mkdir -p /tmp/instackenv-single
+    delegate_to: "{{ item.hypervisor_name }}"
+    with_items:
+      - "{{ controller_nodes }}"
+      - "{{ compute_nodes }}"
+      - "{{ ceph_nodes }}"
+
+  - name: Generating instackenv.json - Step 2
+    shell:
+      cmd: |
+        rm -f /tmp/instackenv.tmp
+        rm -f /tmp/instackenv.json
+        rm -rf /tmp/instackenv-single
+        rm -rf /tmp/instackenv-fetched
+        cat >> /tmp/instackenv.tmp << EOF
+        {
+          "nodes": [
+        EOF
+        mkdir -p /tmp/instackenv-single
+        mkdir -p /tmp/instackenv-fetched
+    delegate_to: "localhost"
+    run_once: True
+    with_items:
+      - "{{ controller_nodes }}"
+      - "{{ compute_nodes }}"
+      - "{{ ceph_nodes }}"
+
+  - name: Generating instackenv.json - Step 3
+    shell:
+      cmd: |
+        MAC=$(virsh domiflist {{ item.name }} | grep bridge | head -1 | awk {'print $5'})
+        cat << EOF >> /tmp/instackenv-single/instackenv-{{ item.name }}
+        {
+          "name": "{{ item.name }}",
+          "pm_addr": "{{ item.vbmc_ip }}",
+          "pm_port": "{{ item.vbmc_port }}",
+          "pm_password": "{{ secure_password }}",
+          "pm_type": "ipmi",
+          "mac": [
+            "${MAC}"
+          ],
+          "pm_user": "admin"
+        }
+        EOF
+    delegate_to: "{{ item.hypervisor_name }}"
+    with_items:
+      - "{{ controller_nodes }}"
+      - "{{ compute_nodes }}"
+      - "{{ ceph_nodes }}"
+
+  - name: Generating instackenv.json - Step 4
+    fetch:
+      src: "/tmp/instackenv-single/instackenv-{{ item.name }}"
+      dest: "/tmp/instackenv-fetched/instackenv-{{ item.name }}"
+      flat: True
+    delegate_to: "{{ item.hypervisor_name }}"
+    with_items:
+      - "{{ controller_nodes }}"
+      - "{{ compute_nodes }}"
+      - "{{ ceph_nodes }}"
+
+  - name: Generating instackenv.json - Step 5
+    shell:
+      cmd: |
+        for f in $(ls /tmp/instackenv-fetched/instackenv-*); do echo "file: $f"; sed 's/\}/\},/g' $f >> /tmp/instackenv.tmp;  done
+        sed -i '$ s/.$//' /tmp/instackenv.tmp
+        echo "]" >> /tmp/instackenv.tmp
+        echo "}" >> /tmp/instackenv.tmp
+        jq . /tmp/instackenv.tmp > /tmp/instackenv.json
+    delegate_to: "localhost"
+    run_once: True
+
+- name:  Add Undercloud VM/Node
+  hosts: localhost
+  vars_files:
+    - variables.yaml
+    - overcloud-ansible-nodes.json
+  tasks:
+  - name: Add undercloud group-host
+    add_host:
+      name: "{{ undercloud_n }}.{{ domain }}"
+      ansible_ssh_private_key_file: ansible-ssh/id_rsa
+      ansible_ssh_user: stack
+      groups:
+        - undercloud
+
+- name:  Prepare Undercloud Node
+  hosts: undercloud
+  vars_files:
+    - variables.yaml
+    - overcloud-ansible-nodes.json
+  tasks:
+  - name: Copy instackenv.json
+    copy:
+      src: /tmp/instackenv.json
+      dest: /home/stack/instackenv.json
+      owner: stack
+      group: stack
+      mode: '0600'
+
+  - name: Copy undercloud.conf
+    template:
+      src: ansible-templates/home/stack/undercloud.conf.j2
+      dest: /home/stack/undercloud.conf
+      owner: stack
+      group: stack
+      mode: '0644'
+
+  - name: Generate containers-prepare-parameter.yaml file
+    shell: |
+      openstack tripleo container image prepare default --local-push-destination --output-env-file containers-prepare-parameter.yaml
+
+  - name: Insert login information in containers-prepare-parameter.yaml
+    shell: |
+      echo "  ContainerImageRegistryCredentials:" >> containers-prepare-parameter.yaml
+      echo "    registry.redhat.io:" >> containers-prepare-parameter.yaml
+      echo "      {{ rh_subcription_user }}: {{ rh_subcription_password }}" >> containers-prepare-parameter.yaml
+
+  - name: Run openstack undercloud install
+    shell:
+      cmd: |
+        DATE=$(date +%Y%m%d-%H%M)
+        time openstack undercloud install 2>&1 | tee -a /home/stack/undercloud-install-$DATE.log
+        RETVALUE=$?
+        exit $RETVALUE
+    async: 7200
+    poll: 10
+
+  - name: Remove old directories
+    file:
+      path: "{{ item }}"
+      state: absent
+    with_items:
+      - "/home/stack/images"
+      - "/home/stack/rendered"
+
+  - name: Create directories
+    file:
+      path: "{{ item }}"
+      state: directory
+    with_items:
+      - "/home/stack/images"
+      - "/home/stack/rendered"
+      - "/home/stack/templates/environments"
+
+  - name: Install rhosp images
+    dnf:
+      name: "{{ item }}"
+      state: present
+    become: True
+    with_items:
+      - rhosp-director-images
+
+  - name: Unarchive images
+    unarchive:
+      src: "{{ item }}"
+      dest: /home/stack/images
+      remote_src: True
+    with_items:
+      - /usr/share/rhosp-director-images/overcloud-full-latest.tar
+      - /usr/share/rhosp-director-images/ironic-python-agent-latest.tar
+
+  - name: Set root password on the image
+    shell: |
+      export LIBGUESTFS_BACKEND=direct
+      virt-customize -a /home/stack/images/overcloud-full.qcow2 --root-password password:{{ secure_password }}
+    become: True
+
+  - name: Upload Overcloud Images to Undercloud Glance.
+    shell: |
+      source /home/stack/stackrc
+      openstack overcloud image upload --image-path /home/stack/images/
+
+  - name: Validate instackenv.json
+    shell: |
+      source /home/stack/stackrc
+      openstack overcloud node import --validate-only /home/stack/instackenv.json
+
+  - name: Import instackenv.json and run introspection
+    shell: |
+      source /home/stack/stackrc
+      openstack overcloud node import --introspect --provide /home/stack/instackenv.json
+

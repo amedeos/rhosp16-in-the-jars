@@ -1,0 +1,27 @@
+[DEFAULT]
+undercloud_hostname = {{ ansible_fqdn }}
+container_images_file = containers-prepare-parameter.yaml
+local_ip = {{ undercloud_ip_prv }}/{{ undercloud_netmask }}
+undercloud_public_host = {{ undercloud_public_vip }}
+undercloud_admin_host = {{ undercloud_admin_vip }}
+undercloud_nameservers = {{ dns_ip_undercloud }}
+subnets = ctlplane-subnet
+local_subnet = ctlplane-subnet
+#undercloud_service_certificate =
+generate_service_certificate = true
+certificate_generation_ca = local
+local_interface = {{ undercloud_local_interface }}
+inspection_extras = false
+undercloud_debug = false
+enable_tempest = false
+enable_ui = false
+
+[auth]
+
+[ctlplane-subnet]
+cidr = {{ undercloud_network_cidr }}/{{ undercloud_netmask }}
+dhcp_start = {{ undercloud_dhcp_start }}
+dhcp_end = {{ undercloud_dhcp_end }}
+inspection_iprange = {{ undercloud_inspection_iprange }}
+gateway = {{ undercloud_network_gateway }}
+

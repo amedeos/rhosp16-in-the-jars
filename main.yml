@@ -12,3 +12,7 @@
 - import_playbook: prepare-undercloud.yaml
   tags:
     - prepare-undercloud
+
+- import_playbook: install-undercloud.yaml
+  tags:
+    - install-undercloud
