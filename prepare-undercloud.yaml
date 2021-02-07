@@ -101,7 +101,7 @@
       dest: hosts-undercloud
       content: |
         [undercloud]
-        "{{ undercloud_n }}.{{ domain }} ansible_ssh_private_key_file=ansible-ssh/id_rsa ansible_ssh_user=root"
+        {{ undercloud_n }}.{{ domain }} ansible_ssh_private_key_file=ansible-ssh/id_rsa ansible_ssh_user=root
 
 - name:  Prepare Undercloud Node
   hosts: undercloud
@@ -200,6 +200,7 @@
         - python3-ipalib
         - python3-ipaclient
         - krb5-devel
+        - bash-completion
 
   - name: Create User Stack
     user:
@@ -257,11 +258,11 @@
       owner: stack
       group: stack
 
+  #TODO: make persistent
   - name: Setting Up Postrouting nat Rules using iptables
     iptables:
       table: nat
       chain: POSTROUTING
       out_interface: "{{ undercloud_local_interface }}"
       jump: MASQUERADE
-
 
