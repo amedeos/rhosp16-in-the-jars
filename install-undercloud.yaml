@@ -164,6 +164,9 @@
     file:
       path: "{{ item }}"
       state: directory
+      owner: stack
+      group: stack
+      mode: '0755'
     with_items:
       - "/home/stack/images"
       - "/home/stack/rendered"
@@ -182,6 +185,8 @@
       src: "{{ item }}"
       dest: /home/stack/images
       remote_src: True
+      owner: stack
+      group: stack
     with_items:
       - /usr/share/rhosp-director-images/overcloud-full-latest.tar
       - /usr/share/rhosp-director-images/ironic-python-agent-latest.tar
@@ -190,7 +195,7 @@
     shell: |
       export LIBGUESTFS_BACKEND=direct
       virt-customize -a /home/stack/images/overcloud-full.qcow2 --root-password password:{{ secure_password }}
-    become: True
+    become: False
 
   - name: Upload Overcloud Images to Undercloud Glance.
     shell: |
