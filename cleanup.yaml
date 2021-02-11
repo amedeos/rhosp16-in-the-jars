@@ -148,6 +148,8 @@
       state: absent
     with_items:
       - "hosts-undercloud"
+      - "hosts-undercloud-stack"
+      - "hosts-undercloud-root"
       - "/tmp/instackenv-single"
       - "/tmp/instackenv-fetched"
 
