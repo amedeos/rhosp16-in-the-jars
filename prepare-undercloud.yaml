@@ -96,12 +96,20 @@
       groups:
         - undercloud
 
-  - name: Write commodity hosts-undercloud file
+  - name: Write commodity hosts-undercloud-root file
     copy:
       dest: hosts-undercloud
       content: |
         [undercloud]
         {{ undercloud_n }}.{{ domain }} ansible_ssh_private_key_file=ansible-ssh/id_rsa ansible_ssh_user=root
+
+  - name: Write commodity hosts-undercloud-stack file
+    copy:
+      dest: hosts-undercloud
+      content: |
+        [undercloud]
+        {{ undercloud_n }}.{{ domain }} ansible_ssh_private_key_file=ansible-ssh/id_rsa ansible_ssh_user=stack
+
 
 - name:  Prepare Undercloud Node
   hosts: undercloud
