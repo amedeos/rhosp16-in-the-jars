@@ -15,6 +15,7 @@
     "controller_nodes": [
         {
             "name": "controller-1",
+            "index_node": "0",
             "state": "present",
             "hypervisor_name": "amelab01.example.com",
             "hypervisor_user": "root",
@@ -26,6 +27,7 @@
         },
         {
             "name": "controller-2",
+            "index_node": "1",
             "state": "present",
             "hypervisor_name": "amelab01.example.com",
             "hypervisor_user": "root",
@@ -37,6 +39,7 @@
         },
         {
             "name": "controller-3",
+            "index_node": "2",
             "state": "present",
             "hypervisor_name": "amelab01.example.com",
             "hypervisor_user": "root",
@@ -50,6 +53,7 @@
     "compute_nodes": [
         {
             "name": "compute-1",
+            "index_node": "0",
             "state": "present",
             "hypervisor_name": "amelab01.example.com",
             "hypervisor_user": "root",
@@ -61,6 +65,7 @@
         },
         {
             "name": "compute-2",
+            "index_node": "1",
             "state": "present",
             "hypervisor_name": "amelab01.example.com",
             "hypervisor_user": "root",
@@ -74,6 +79,7 @@
     "ceph_nodes": [
         {
             "name": "ceph-1",
+            "index_node": "0",
             "state": "present",
             "hypervisor_name": "localhost",
             "hypervisor_user": "root",
@@ -85,6 +91,7 @@
         },
         {
             "name": "ceph-2",
+            "index_node": "1",
             "state": "present",
             "hypervisor_name": "localhost",
             "hypervisor_user": "root",
@@ -96,6 +103,7 @@
         },
         {
             "name": "ceph-3",
+            "index_node": "2",
             "state": "present",
             "hypervisor_name": "localhost",
             "hypervisor_user": "root",
