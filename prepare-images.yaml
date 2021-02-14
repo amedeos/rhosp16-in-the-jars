@@ -49,9 +49,14 @@
     run_once: True
     with_items: "{{ undercloud_nodes }}"
 
+  - name: Copy ssh_pub to temp dir
+    copy:
+      src: "{{ ssh_pub }}"
+      dest: "/tmp/id_rsa.pub"
+
   - name: Customizing the image to set root password, push ssh key and remove cloud-init
     shell: |
-      virt-customize -a {{ item.hypervisor_image_dir }}/{{ supported_os }}-100G.qcow2 --root-password password:"{{ secure_password }}" --ssh-inject "root:file:{{ ssh_pub }}" --selinux-relabel --run-command 'yum remove cloud-init* -y'
+      virt-customize -a {{ item.hypervisor_image_dir }}/{{ supported_os }}-100G.qcow2 --root-password password:"{{ secure_password }}" --ssh-inject "root:file:/tmp/id_rsa.pub" --selinux-relabel --run-command 'yum remove cloud-init* -y'
     environment:
       LIBGUESTFS_PATH: "{{ libguestfs_path }}"
     delegate_to: "{{ item.hypervisor_name }}"
@@ -70,6 +75,7 @@
     copy:
       src: "{{ item.hypervisor_image_dir }}/{{ supported_os }}-100G.qcow2"
       dest: "{{ item.hypervisor_image_dir }}/{{ supported_os }}-undercloud.qcow2"
+      remote_src: True
     delegate_to: "{{ item.hypervisor_name }}"
     run_once: True
     with_items: "{{ undercloud_nodes }}"
