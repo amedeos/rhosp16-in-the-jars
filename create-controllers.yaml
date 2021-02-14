@@ -31,7 +31,7 @@
 
   - name: Defining the Overcloud controllers
     shell: |
-      virt-install --ram {{ controller_memory }} --vcpus {{ controller_cpu }} --os-variant rhel8.2 --disk path={{ item.hypervisor_image_dir }}/{{ item.name }}.qcow2,device=disk,bus=virtio,format=qcow2 --noautoconsole --vnc --network bridge:{{ bridge_n }} --network bridge:{{ bridge_n }} --network bridge:{{ bridge_n }} --name {{ item.name }} --cpu host-passthrough --dry-run --print-xml > /tmp/{{ item.name }}.xml
+      virt-install --ram {{ controller_memory }} --vcpus {{ controller_cpu }} --os-variant rhel8.2 --disk path={{ item.hypervisor_image_dir }}/{{ item.name }}.qcow2,device=disk,bus=sata,format=qcow2 --noautoconsole --vnc --network bridge:{{ bridge_n }} --network bridge:{{ bridge_n }} --network bridge:{{ bridge_n }} --name {{ item.name }} --cpu host-passthrough --dry-run --print-xml > /tmp/{{ item.name }}.xml
       virsh define /tmp/{{ item.name }}.xml
     delegate_to: "{{ item.hypervisor_name }}"
     run_once: True
