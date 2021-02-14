@@ -178,6 +178,7 @@
   - name: Delete virtualbmc interface
     shell: |
       vbmc delete "{{ item.name }}"
+    ignore_errors: True
     delegate_to: "{{ item.hypervisor_name }}"
     run_once: True
     with_items:
@@ -185,4 +186,26 @@
       - "{{ controller_nodes }}"
       - "{{ compute_nodes }}"
       - "{{ ceph_nodes }}"
+
+  - name: Remove undercloud from ssh/config file
+    blockinfile:
+      path: ~/.ssh/config
+      backup: True
+      state: absent
+      block: |
+        Host {{ undercloud_n }}.{{ domain }}
+        IdentityFile ~/ansible-ssh/id_rsa
+    delegate_to: "{{ item.hypervisor_name }}"
+    run_once: True
+    with_items: "{{ undercloud_nodes }}"
+
+  - name: Remote undercloud entry in /etc/hosts
+    lineinfile:
+      path: /etc/hosts
+      backup: True
+      regexp: "{{ undercloud_ip }}\t{{ undercloud_n }}.{{ domain }}\t{{ undercloud_n }}"
+      state: absent
+    delegate_to: "{{ item.hypervisor_name }}"
+    run_once: True
+    with_items: "{{ undercloud_nodes }}"
 
