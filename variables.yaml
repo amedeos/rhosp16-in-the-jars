@@ -41,12 +41,12 @@ undercloud_netmask: 24
 undercloud_local_interface: eth1
 undercloud_public_vip: 192.168.201.100
 undercloud_admin_vip: 192.168.201.101
-undercloud_dhcp_start: 192.168.201.102
-undercloud_dhcp_end: 192.168.201.130
+undercloud_dhcp_start: 192.168.201.120
+undercloud_dhcp_end: 192.168.201.140
 undercloud_network_cidr: 192.168.201.0
 undercloud_network_gateway: 192.168.201.1
-undercloud_discovery_iprange: 192.168.201.131,192.168.201.160
-undercloud_inspection_iprange: 192.168.201.131,192.168.201.160
+undercloud_discovery_iprange: 192.168.201.141,192.168.201.160
+undercloud_inspection_iprange: 192.168.201.141,192.168.201.160
 domain: example.com
 undercloud_n: undercloud
 pre_provision: 0
