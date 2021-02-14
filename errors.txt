@@ -1,0 +1,16 @@
+Feb 14 19:29:57 amelab01.example.com kernel: e1000e 0000:00:1f.6 eno1: Detected Hardware Unit Hang:
+                                               TDH                  <b8>
+                                               TDT                  <27>
+                                               next_to_use          <27>
+                                               next_to_clean        <b7>
+                                             buffer_info[next_to_clean]:
+                                               time_stamp           <1001e12df>
+                                               next_to_watch        <b8>
+                                               jiffies              <1001e3540>
+                                               next_to_watch.status <0>
+                                             MAC Status             <40080083>
+                                             PHY Status             <796d>
+                                             PHY 1000BASE-T Status  <3800>
+                                             PHY Extended Status    <3000>
+                                             PCI Status             <10>
+Feb 14 19:29:58 amelab01.example.com kernel: e1000e 0000:00:1f.6 eno1: Reset adapter unexpectedly
