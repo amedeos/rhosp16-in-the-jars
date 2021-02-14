@@ -101,6 +101,36 @@
       - "{{ ceph_nodes }}"
     ignore_errors: True
 
+  - name: Remove ceph journal qcow2 files
+    file:
+      path: "{{ item.hypervisor_image_dir }}/{{ item.name }}-journal.qcow2"
+      state: absent
+    delegate_to: "{{ item.hypervisor_name }}"
+    run_once: True
+    with_items:
+      - "{{ ceph_nodes }}"
+    ignore_errors: True
+
+  - name: Remove ceph osd-1 qcow2 files
+    file:
+      path: "{{ item.hypervisor_image_dir }}/{{ item.name }}-osd-1.qcow2"
+      state: absent
+    delegate_to: "{{ item.hypervisor_name }}"
+    run_once: True
+    with_items:
+      - "{{ ceph_nodes }}"
+    ignore_errors: True
+
+  - name: Remove ceph osd-2 qcow2 files
+    file:
+      path: "{{ item.hypervisor_image_dir }}/{{ item.name }}-osd-2.qcow2"
+      state: absent
+    delegate_to: "{{ item.hypervisor_name }}"
+    run_once: True
+    with_items:
+      - "{{ ceph_nodes }}"
+    ignore_errors: True
+
   - name: Remove qcow2 files
     file:
       path: "{{ image_dir }}/{{ item }}"
@@ -124,14 +154,6 @@
       - rhel8-undercloud.qcow2
       - undercloud.qcow2
       - "{{ image }}"
-
-  - name: Remove ceph qcow2 files
-    shell: |
-      rm -f "{{ item.hypervisor_image_dir }}/{{ item.name }}-*.qcow2"
-    delegate_to: "{{ item.hypervisor_name }}"
-    run_once: True
-    with_items:
-      - "{{ ceph_nodes }}"
 
   - name: Remove ssh known hosts
     known_hosts:
