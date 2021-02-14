@@ -26,6 +26,7 @@
     copy:
       src: "{{ item.hypervisor_image_dir }}/rhel8-undercloud.qcow2"
       dest: "{{ item.hypervisor_image_dir }}/undercloud.qcow2"
+      remote_src: True
     delegate_to: "{{ item.hypervisor_name }}"
     run_once: True
     with_items: "{{ undercloud_nodes }}"
@@ -66,50 +67,109 @@
       host: "{{ undercloud_ip }}"
       delay: 20
       timeout: 300
+    delegate_to: "{{ item.hypervisor_name }}"
+    run_once: True
+    with_items: "{{ undercloud_nodes }}"
 
   - name: Remove temp directory for ssh key
     file:
       path: ansible-ssh
       state: absent
+    delegate_to: "{{ item.hypervisor_name }}"
+    run_once: True
+    with_items: "{{ undercloud_nodes }}"
 
   - name: Create temp directory for ssh key
     file:
       path: ansible-ssh
       state: directory
       mode: '0700'
+    delegate_to: "{{ item.hypervisor_name }}"
+    run_once: True
+    with_items: "{{ undercloud_nodes }}"
 
   - name: Write ssh key
     template:
       dest: "ansible-ssh/id_rsa"
       src: "{{ ssh_key }}"
       mode: 0600
+    delegate_to: "{{ item.hypervisor_name }}"
+    run_once: True
+    with_items: "{{ undercloud_nodes }}"
 
   - name: Add newline at the end of ssh key
     shell: |
       echo  >> ansible-ssh/id_rsa
+    delegate_to: "{{ item.hypervisor_name }}"
+    run_once: True
+    with_items: "{{ undercloud_nodes }}"
+
+  - name: Update /etc/hosts with undercloud entry
+    lineinfile:
+      path: /etc/hosts
+      backup: True
+      regexp: "{{ undercloud_n }}.{{ domain }}"
+      line: "{{ undercloud_ip }}\t{{ undercloud_n }}.{{ domain }}\t{{ undercloud_n }}"
+      state: present
+    delegate_to: "{{ item.hypervisor_name }}"
+    run_once: True
+    with_items: "{{ undercloud_nodes }}"
+
+  - name: Ensure .ssh directory is present
+    file:
+      path: ~/.ssh
+      state: directory
+      mode: '0700'
+    delegate_to: "{{ item.hypervisor_name }}"
+    run_once: True
+    with_items: "{{ undercloud_nodes }}"
+
+  - name: Create ssh/config file
+    file:
+      path: ~/.ssh/config
+      state: touch
+      mode: '0644'
+    delegate_to: "{{ item.hypervisor_name }}"
+    run_once: True
+    with_items: "{{ undercloud_nodes }}"
+
+  - name: Write ssh/config file
+    blockinfile:
+      path: ~/.ssh/config
+      backup: True
+      state: present
+      block: |
+        Host {{ undercloud_n }}.{{ domain }}
+        IdentityFile ~/ansible-ssh/id_rsa
+    delegate_to: "{{ item.hypervisor_name }}"
+    run_once: True
+    with_items: "{{ undercloud_nodes }}"
 
   - name: Add undercloud group-host
     add_host:
       name: "{{ undercloud_n }}.{{ domain }}"
-      ansible_ssh_private_key_file: ansible-ssh/id_rsa
       ansible_ssh_user: root
+      ansible_ssh_pass: "{{ secure_password }}"
+      ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand="ssh -W %h:%p -q {{ item.hypervisor_user }}@{{ item.hypervisor_name }}"'
       groups:
         - undercloud
+    with_items: "{{ undercloud_nodes }}"
 
   - name: Write commodity hosts-undercloud-root file
     copy:
-      dest: hosts-undercloud
+      dest: hosts-undercloud-root
       content: |
         [undercloud]
-        {{ undercloud_n }}.{{ domain }} ansible_ssh_private_key_file=ansible-ssh/id_rsa ansible_ssh_user=root
+        {{ undercloud_n }}.{{ domain }} ansible_ssh_user=root ansible_ssh_pass={{ secure_password }} ansible_ssh_common_args='-o StrictHostKeyChecking=no UserKnownHostsFile=/dev/null -o ProxyCommand="ssh -W %h:%p -q {{ item.hypervisor_user }}@{{ item.hypervisor_name }}"'
+    with_items: "{{ undercloud_nodes }}"
 
   - name: Write commodity hosts-undercloud-stack file
     copy:
-      dest: hosts-undercloud
+      dest: hosts-undercloud-stack
       content: |
         [undercloud]
-        {{ undercloud_n }}.{{ domain }} ansible_ssh_private_key_file=ansible-ssh/id_rsa ansible_ssh_user=stack
-
+        {{ undercloud_n }}.{{ domain }} ansible_ssh_user=stack ansible_ssh_pass={{ secure_password }} ansible_ssh_common_args='-o StrictHostKeyChecking=no UserKnownHostsFile=/dev/null -o ProxyCommand="ssh -W %h:%p -q {{ item.hypervisor_user }}@{{ item.hypervisor_name }}"'
+    with_items: "{{ undercloud_nodes }}"
 
 - name:  Prepare Undercloud Node
   hosts: undercloud
