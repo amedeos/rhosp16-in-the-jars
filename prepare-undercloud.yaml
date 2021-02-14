@@ -160,7 +160,7 @@
       dest: hosts-undercloud-root
       content: |
         [undercloud]
-        {{ undercloud_n }}.{{ domain }} ansible_ssh_user=root ansible_ssh_pass={{ secure_password }} ansible_ssh_common_args='-o StrictHostKeyChecking=no UserKnownHostsFile=/dev/null -o ProxyCommand="ssh -W %h:%p -q {{ item.hypervisor_user }}@{{ item.hypervisor_name }}"'
+        {{ undercloud_n }}.{{ domain }} ansible_ssh_user=root ansible_ssh_pass={{ secure_password }} ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand="ssh -W %h:%p -q {{ item.hypervisor_user }}@{{ item.hypervisor_name }}"'
     with_items: "{{ undercloud_nodes }}"
 
   - name: Write commodity hosts-undercloud-stack file
@@ -168,7 +168,7 @@
       dest: hosts-undercloud-stack
       content: |
         [undercloud]
-        {{ undercloud_n }}.{{ domain }} ansible_ssh_user=stack ansible_ssh_pass={{ secure_password }} ansible_ssh_common_args='-o StrictHostKeyChecking=no UserKnownHostsFile=/dev/null -o ProxyCommand="ssh -W %h:%p -q {{ item.hypervisor_user }}@{{ item.hypervisor_name }}"'
+        {{ undercloud_n }}.{{ domain }} ansible_ssh_user=stack ansible_ssh_pass={{ secure_password }} ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand="ssh -W %h:%p -q {{ item.hypervisor_user }}@{{ item.hypervisor_name }}"'
     with_items: "{{ undercloud_nodes }}"
 
 - name:  Prepare Undercloud Node
@@ -273,7 +273,10 @@
   - name: Create User Stack
     user:
       name: stack
-      password: "{{ secure_password }}"
+
+  - name: Reset stack password
+    shell: |
+      echo -n {{ secure_password }} | passwd --stdin stack
 
   - name: Assign sudo power to stack user
     copy:
