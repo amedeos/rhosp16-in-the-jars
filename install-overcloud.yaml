@@ -1,0 +1,114 @@
+- name:  Add Undercloud VM/Node
+  hosts: localhost
+  vars_files:
+    - variables.yaml
+    - overcloud-ansible-nodes.json
+  tasks:
+  - name: Add undercloud group-host
+    add_host:
+      name: "{{ undercloud_n }}.{{ domain }}"
+      ansible_ssh_user: stack
+      ansible_ssh_pass: "{{ secure_password }}"
+      ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand="ssh -W %h:%p -q {{ item.hypervisor_user }}@{{ item.hypervisor_name }}"'
+      groups:
+        - undercloud
+    with_items:
+      - "{{ undercloud_nodes }}"
+
+- name:  Install Overcloud
+  hosts: undercloud
+  vars_files:
+    - variables.yaml
+    - overcloud-ansible-nodes.json
+  tasks:
+  - name: Generating Fencing Configuration from isntackenv.json
+    shell: |
+      source /home/stack/stackrc
+      openstack overcloud generate fencing --ipmi-lanplus --ipmi-level administrator --output /home/stack/templates/fencing.yaml /home/stack/instackenv.json
+
+  - name: Tag controllers
+    shell: |
+      source /home/stack/stackrc
+      #openstack baremetal node set {{ item.name }} --property capabilities=profile:control,node:controller-{{ item.index_node }},boot_option:local
+      openstack baremetal node set {{ item.name }} --property capabilities=profile:control,boot_option:local
+    with_items:
+      - "{{ controller_nodes }}"
+
+  - name: Tag computes
+    shell: |
+      source /home/stack/stackrc
+      #openstack baremetal node set {{ item.name }} --property capabilities=profile:compute,node:compute-{{ item.index_node }},boot_option:local
+      openstack baremetal node set {{ item.name }} --property capabilities=profile:compute,boot_option:local
+    with_items:
+      - "{{ compute_nodes }}"
+
+  - name: Tag ceph
+    shell: |
+      source /home/stack/stackrc
+      #openstack baremetal node set {{ item.name }} --property capabilities=profile:ceph-storage,node:ceph-{{ item.index_node }},boot_option:local
+      openstack baremetal node set {{ item.name }} --property capabilities=profile:ceph-storage,boot_option:local
+    with_items:
+      - "{{ ceph_nodes }}"
+
+  - name: Copy default roles_data.yaml
+    copy:
+      src: /usr/share/openstack-tripleo-heat-templates/roles_data.yaml
+      dest: /home/stack/templates/roles_data.yaml
+      remote_src: True
+
+  - name: Configure environments files
+    template:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      owner: stack
+      group: stack
+      mode: '0644'
+    with_items:
+      - { src: ansible-templates/home/stack/templates/node-info.yaml, dest: /home/stack/templates/node-info.yaml }
+      - { src: ansible-templates/home/stack/templates/fix-nova-reserved-host-memory.yaml, dest: /home/stack/templates/fix-nova-reserved-host-memory.yaml }
+      - { src: ansible-templates/home/stack/templates/network_data.yaml, dest: /home/stack/templates/network_data.yaml }
+      - { src: ansible-templates/home/stack/templates/HostnameMap.yaml, dest: /home/stack/templates/HostnameMap.yaml }
+      - { src: ansible-templates/home/stack/templates/ceph-config.yaml, dest: /home/stack/templates/ceph-config.yaml }
+      - { src: ansible-templates/home/stack/templates/wipe-disks.yaml, dest: /home/stack/templates/wipe-disks.yaml }
+      - { src: ansible-templates/home/stack/templates/wipe-disk.sh, dest: /home/stack/templates/wipe-disk.sh }
+
+  - name: Configure deploy.sh
+    template:
+      src: ansible-templates/home/stack/deploy.sh
+      dest: /home/stack/deploy.sh
+      owner: stack
+      group: stack
+      mode: '0755'
+
+  - name: Remove ~/rendered directory
+    file:
+      path: ~/rendered
+      state: absent
+
+  - name: Create ~/rendered directory
+    file:
+      path: ~/rendered
+      state: directory
+
+  - name: Generate rendered files
+    shell: |
+      THT=/usr/share/openstack-tripleo-heat-templates
+      cd $THT
+      tools/process-templates.py -r ~/templates/roles_data.yaml -n ~/templates/network_data.yaml -o ~/rendered
+
+  - name: Copy network directory/file from rendered
+    shell: |
+      rm -rf ~/templates/network
+      cp -a ~/rendered/network ~/templates/
+      cp -f ~/rendered/environments/net-bond-with-vlans.yaml ~/templates/environments/
+      cp -f ~/rendered/environments/network-environment.yaml ~/templates/environments/
+
+  - name: simple exit
+    shell: exit 1
+
+  - name: Run deploy.sh
+    shell: |
+      ~/deploy.sh
+    async: 14400
+    poll: 10
+

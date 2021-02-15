@@ -30,8 +30,6 @@ if [ $retVal -ne 0 ]; then
     exit $retVal
 fi
 
-exit
-
 #install undercloud
 echo "Run install-undercloud"
 $ANSIBLE_PLAYBOOK --vault-password-file $VAULT_FILE --tags install-undercloud main.yml
@@ -40,8 +38,6 @@ if [ $retVal -ne 0 ]; then
     echo "Error in install-undercloud"
     exit $retVal
 fi
-
-exit 0
 
 #install overcloud
 echo "Run install-overcloud"

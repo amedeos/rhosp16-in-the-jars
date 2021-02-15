@@ -1,0 +1,47 @@
+# Storage All Leaf
+- name: Storage
+  vip: true
+  name_lower: storage
+  vlan: 2004
+  ip_subnet: '192.168.204.0/24'
+  allocation_pools: [{'start': '192.168.204.101', 'end': '192.168.204.149'}]
+
+# StorageMgmt
+- name: StorageMgmt
+  name_lower: storage_mgmt
+  vlan: 2005
+  vip: true
+  ip_subnet: '192.168.205.0/24'
+  allocation_pools: [{'start': '192.168.205.101', 'end': '192.168.205.149'}]
+
+# Internal API
+- name: InternalApi
+  name_lower: internal_api
+  vlan: 2000
+  vip: true
+  ip_subnet: '192.168.200.0/24'
+  allocation_pools: [{'start': '192.168.200.101', 'end': '192.168.200.149'}]
+
+# Tenant
+- name: Tenant
+  vip: false  # Tenant network does not use VI
+  name_lower: tenant
+  vlan: 2006
+  ip_subnet: '192.168.206.0/24'
+  allocation_pools: [{'start': '192.168.206.101', 'end': '192.168.206.149'}]
+
+- name: External
+  vip: true
+  name_lower: external
+  vlan: 2003
+  ip_subnet: '192.168.203.0/24'
+  allocation_pools: [{'start': '192.168.203.101', 'end': '192.168.203.129'}]
+  gateway_ip: '192.168.203.1'
+
+- name: Management
+  vip: false
+  name_lower: management
+  vlan: 2002
+  ip_subnet: '192.168.202.0/24'
+  allocation_pools: [{'start': '192.168.202.101', 'end': '192.168.202.149'}]
+

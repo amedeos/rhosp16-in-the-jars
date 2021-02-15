@@ -16,3 +16,7 @@
 - import_playbook: install-undercloud.yaml
   tags:
     - install-undercloud
+
+- import_playbook: install-overcloud.yaml
+  tags:
+    - install-overcloud
