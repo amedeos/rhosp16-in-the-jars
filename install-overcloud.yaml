@@ -72,6 +72,10 @@
       - { src: ansible-templates/home/stack/templates/wipe-disks.yaml, dest: /home/stack/templates/wipe-disks.yaml }
       - { src: ansible-templates/home/stack/templates/wipe-disk.sh, dest: /home/stack/templates/wipe-disk.sh }
 
+  - name: Configure custom domain
+    shell: |
+      sed 's/localdomain/{{ domain }}/' /usr/share/openstack-tripleo-heat-templates/environments/predictable-placement/custom-domain.yaml | tee ~/templates/custom-domain.yaml
+
   - name: Configure deploy.sh
     template:
       src: ansible-templates/home/stack/deploy.sh

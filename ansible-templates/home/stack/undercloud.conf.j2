@@ -1,5 +1,6 @@
 [DEFAULT]
-undercloud_hostname = {{ ansible_fqdn }}
+undercloud_hostname = {{ undercloud_n }}.{{ domain }}
+overcloud_domain_name = {{ domain }}
 container_images_file = containers-prepare-parameter.yaml
 local_ip = {{ undercloud_ip_prv }}/{{ undercloud_netmask }}
 undercloud_public_host = {{ undercloud_public_vip }}

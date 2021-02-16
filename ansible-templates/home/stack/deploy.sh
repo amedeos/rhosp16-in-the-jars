@@ -17,6 +17,7 @@ openstack overcloud deploy --templates $THT \
 -e ~/containers-prepare-parameter.yaml \
 -e $CNF/node-info.yaml \
 -e $CNF/ceph-config.yaml \
+-e $CNF/custom-domain.yaml \
 -e $CNF/fix-nova-reserved-host-memory.yaml 2>&1 | tee -a /home/stack/overcloud-install-$DATE.log
 
 #-e $CNF/HostnameMap.yaml \
