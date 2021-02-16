@@ -6,9 +6,9 @@ resource_registry:
 parameter_defaults:
   CephAnsibleDisksConfig:
     devices:
-      - /dev/sdb
-      - /dev/sdc
-      - /dev/sdd
+      - /dev/vdb
+      - /dev/vdc
+      - /dev/vdd
   CephConfigOverrides:
     mon_max_pg_per_osd: 2048
   CephAnsiblePlaybookVerbosity: 1
