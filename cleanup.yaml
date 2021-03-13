@@ -52,9 +52,6 @@
     - variables.yaml
     - overcloud-ansible-nodes.json
   tasks:
-  - name: simple exit
-    shell: exit 1
-
   - name: Destroy virsh domain
     virt:
       name: "{{ item.name }}"

@@ -65,82 +65,23 @@ image_location: http://192.168.1.70/images/rhel-8.2-update-2-x86_64-kvm.qcow2
 image_instance: cirros-0.5.1-x86_64-disk.img
 image_instance_location: http://download.cirros-cloud.net/0.5.1/cirros-0.5.1-x86_64-disk.img
 num_controller: 3
-ctrl_n: controller-1 controller-2 controller-3
-ctrl_n_list:
-  - controller-1
-  - controller-2
-  - controller-3
 num_compute: 2
-compute_n: compute-1 compute-2
-compute_n_list:
-  - compute-1
-  - compute-2
 num_ceph: 3
-ceph_n: ceph-1 ceph-2 ceph-3
-ceph_n_list:
-  - ceph-1
-  - ceph-2
-  - ceph-3
-all_n: "{{ ctrl_n }} {{ compute_n }} {{ ceph_n }}"
-all_n_external_ceph: "{{ ctrl_n }} {{ compute_n }}"
-#provisioning_networks: provisioning
-osp_version: 13
-flavors: control compute ceph
 #ansible_python_interpreter: /usr/libexec/platform-python
-split_stack: 0
-cell_enabled: 0
-controller_1_ip: 192.168.201.31
-controller_2_ip: 192.168.201.32
-controller_3_ip: 192.168.201.33
-compute_1_ip: 192.168.201.41
-compute_2_ip: 192.168.201.42
-ceph_1_ip: 192.168.201.51
-ceph_2_ip: 192.168.201.52
-ceph_3_ip: 192.168.201.53
+#controller_1_ip: 192.168.201.31
+#controller_2_ip: 192.168.201.32
+#controller_3_ip: 192.168.201.33
+#compute_1_ip: 192.168.201.41
+#compute_2_ip: 192.168.201.42
+#ceph_1_ip: 192.168.201.51
+#ceph_2_ip: 192.168.201.52
+#ceph_3_ip: 192.168.201.53
 #PublicVirtualFixedIPs
 public_virtual_fixed_ips: 192.168.203.150
 #ControlFixedIPs
 control_fixed_ips: 192.168.201.150
-hypervisor_networks:
-  - bridge
-  - bridge
-pre_provisioned_nodes:
-  - controller-1
-  - controller-2
-  - controller-3
-  - compute-1
-  - compute-2
-  - ceph-1
-  - ceph-2
-  - ceph-3
 supported_os: rhel8
-supported_osp_versions:
-  - 13
-  - 16
-ceph_external_nodes:
-  - ceph-1
-  - ceph-2
-  - ceph-3
-  - mon-1
-  - mon-2
-  - mon-3
-  - ceph-ansible
-pre_provisioned_nodes_with_ceph_external:
-  - controller-1
-  - controller-2
-  - controller-3
-  - compute-1
-  - compute-2
-  - ceph-1
-  - ceph-2
-  - ceph-3
-  - mon-1
-  - mon-2
-  - mon-3
-  - ceph-ansible
-ceph_external: 0
-stf: 0
-ssl_ansible: 0
+enable_tls: False
 ### floating ip network
 fip_vlanid: 2007
 fip_subnet: 192.168.207.0/24

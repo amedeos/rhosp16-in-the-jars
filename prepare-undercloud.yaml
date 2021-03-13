@@ -269,6 +269,8 @@
         - python3-ipaclient
         - krb5-devel
         - bash-completion
+        - openssl-perl
+        - tree
 
   - name: Create User Stack
     user:

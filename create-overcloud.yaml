@@ -12,6 +12,4 @@
   import_playbook: create-ceph.yaml
   tags:
     - create-ceph
-  when:
-    - ceph_external != "1"
 
