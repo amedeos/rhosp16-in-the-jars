@@ -76,6 +76,116 @@
     shell: |
       sed 's/localdomain/{{ domain }}/' /usr/share/openstack-tripleo-heat-templates/environments/predictable-placement/custom-domain.yaml | tee ~/templates/custom-domain.yaml
 
+  - name: Ensure cert directory is present
+    file:
+      path: ~/cert
+      state: directory
+    when: enable_tls|bool
+
+  - name: Configure openssl.cnf
+    template:
+      src: ansible-templates/home/stack/cert/openssl.cnf
+      dest: ~/cert/openssl.cnf
+      owner: stack
+      group: stack
+      mode: '0660'
+      backup: True
+    when: enable_tls|bool
+
+  - name: Check if private key is present
+    stat:
+      path: ~/cert/overcloud-privkey.pem
+    register: private_key
+    when: enable_tls|bool
+
+  - name: Generate private key
+    shell: |
+      openssl genrsa -out ~/cert/overcloud-privkey.pem 2048
+    when:
+      - enable_tls|bool
+      - not private_key.stat.exists
+
+  - name: Generate csr
+    shell: |
+      openssl req -config /home/stack/cert/openssl.cnf -key /home/stack/cert/overcloud-privkey.pem -new -out /home/stack/cert/overcloud.csr.pem -subj '/C=IT/ST=MI/L=Milan/O={{ domain }} SPA/OU=QE/CN=overcloud.{{ domain }}'
+    when:
+      - enable_tls|bool
+
+  - name: Check if CA key is present
+    stat:
+      path: ~/cert/ca.key.pem
+    register: ca_private_key
+    when:
+      - enable_tls|bool
+
+  - name: Generate CA Key
+    shell: |
+      openssl genrsa -out ~/cert/ca.key.pem 4096
+    when:
+      - enable_tls|bool
+      - not ca_private_key.stat.exists
+
+  - name: Generate CA
+    shell: |
+      openssl req  -key ~/cert/ca.key.pem -new -x509 -days 7300 -extensions v3_ca -out ~/cert/ca.crt.pem -subj '/C=IT/ST=MI/L=Milan/O={{ domain }} SPA/OU=QE'
+    when:
+      - enable_tls|bool
+      - not ca_private_key.stat.exists
+
+  - name: Copy CA to the anchors
+    shell: |
+      sudo cp /home/stack/cert/ca.crt.pem /etc/pki/ca-trust/source/anchors/
+      sudo update-ca-trust extract
+    when:
+      - enable_tls|bool
+
+  - name: Create /etc/pki/CA
+    file:
+      path: "{{ item.path }}"
+      state: "{{ item.state }}"
+      mode: "{{ item.mode }}"
+    become: True
+    with_items:
+      - { path: /etc/pki/CA, state: directory, mode: '0755' }
+      - { path: /etc/pki/CA/certs, state: directory, mode: '0755' }
+      - { path: /etc/pki/CA/crl, state: directory, mode: '0755' }
+      - { path: /etc/pki/CA/newcerts, state: directory, mode: '0755' }
+      - { path: /etc/pki/CA/private, state: directory, mode: '0700' }
+    when:
+      - enable_tls|bool
+
+  - name: Verify if serial is present serial
+    stat:
+      path: /etc/pki/CA/serial
+    register: serial_file
+    become: True
+    when:
+      - enable_tls|bool
+
+  - name: Create serial
+    shell: |
+      echo '1000' | sudo tee /etc/pki/CA/serial
+      sudo touch /etc/pki/CA/index.txt
+    when:
+      - enable_tls|bool
+      - not serial_file.stat.exists
+
+  - name: Check if Certificate is present
+    stat:
+      path: /home/stack/cert/overcloud.crt.pem
+    register: cert_file
+    when:
+      - enable_tls|bool
+
+  - name: Create SSL/TLS Certificate
+    shell: |
+      sudo openssl ca -batch -extensions v3_req -days 3650 -in /home/stack/cert/overcloud.csr.pem -out /home/stack/cert/overcloud.crt.pem -cert /home/stack/cert/ca.crt.pem -keyfile /home/stack/cert/ca.key.pem
+      sudo chown stack:stack /home/stack/cert/overcloud.crt.pem
+    ignore_errors: True
+    when:
+      - enable_tls|bool
+      - not cert_file.stat.exists
+
   - name: Configure deploy.sh
     template:
       src: ansible-templates/home/stack/deploy.sh
@@ -106,6 +216,48 @@
       cp -a ~/rendered/network ~/templates/
       cp -f ~/rendered/environments/net-bond-with-vlans.yaml ~/templates/environments/
       cp -f ~/rendered/environments/network-environment.yaml ~/templates/environments/
+
+  - name: Copy TLS templates
+    shell: |
+      cp -f ~/rendered/environments/ssl/enable-tls.yaml ~/templates
+      cp -f ~/rendered/environments/ssl/inject-trust-anchor.yaml ~/templates/inject-trust-anchor.yaml
+      sed -i 's#\.\./\.\.#/usr/share/openstack-tripleo-heat-templates#' ~/templates/inject-trust-anchor.yaml
+    when:
+      - enable_tls|bool
+
+  - name: Create clean Certificate
+    shell: |
+      NUM=$(egrep -n 'BEGIN CERTIFICATE' /home/stack/cert/overcloud.crt.pem | awk -F: '{print $1}')
+      tail -n +$NUM /home/stack/cert/overcloud.crt.pem > /home/stack/cert/overcloud.crt.pem.clean
+    when:
+      - enable_tls|bool
+
+  - name: Update enable-tls.yaml with Certificate
+    shell: |
+      sed -i -e '/The contents of your certificate go here/r /home/stack/cert/overcloud.crt.pem.clean' -e '/The contents of your certificate go here/ d' ~/templates/enable-tls.yaml
+      sed -i  -e '/-----BEGIN CERT/,/-----END CERT/{s/^/    /g}' ~/templates/enable-tls.yaml
+    when:
+      - enable_tls|bool
+
+  - name: Update enable-tls.yaml with private key
+    shell: |
+      sed -i -e '/The contents of the private key go here/r /home/stack/cert/overcloud-privkey.pem' -e '/The contents of the private key go here/ d' ~/templates/enable-tls.yaml
+      sed -i -e '/-----BEGIN RSA/,/-----END RSA/{s/^/    /g}' ~/templates/enable-tls.yaml
+    when:
+      - enable_tls|bool
+
+  - name: Update PublicTLSCAFile
+    shell: |
+      sed -i "s#PublicTLSCAFile: ''#PublicTLSCAFile: '/etc/pki/ca-trust/source/anchors/ca.crt.pem'#" ~/templates/enable-tls.yaml
+    when:
+      - enable_tls|bool
+
+  - name: Copy CA to the inject-trust-anchor.yaml
+    shell: |
+      sed -i -e '/The contents of your certificate go here/r /home/stack/cert/ca.crt.pem' -e '/The contents of your certificate go here/ d' ~/templates/inject-trust-anchor.yaml
+      sed -i -e '/-----BEGIN CERT/,/-----END CERT/{s/^/    /g}' ~/templates/inject-trust-anchor.yaml
+    when:
+      - enable_tls|bool
 
   - name: simple exit
     shell: exit 1
