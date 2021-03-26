@@ -80,9 +80,49 @@ Open **variables.yaml** and edit all variables do you need to fit your requireme
 | rh_subcription_password | Your Red Hat Customer Portal password |
 | rh_subcription_pool | Your Red Hat Subscription Pool ID for RHOSP |
 | image_location | RHEL 8.2 qcow2 URL |
+| ssh_pub | Your ssh public key |
+| ssh_key | Your ssh private key |
 
 ### overcloud-ansible-nodes.json
 Edit this file mapping all VM to your NUC hosts, if you use "localhost", then the Ansible local connection will be used, otherwise Ansible will use ssh connection.
+
+For example if you want to install the undercloud on the NUC host **pippo01.example** configure overcloud-ansible-nodes.json with the following lines:
+
+```json
+    "undercloud_nodes": [
+        {
+            "name": "undercloud",
+            "state": "present",
+            "hypervisor_name": "pippo01.example.com",
+            "hypervisor_user": "root",
+            "hypervisor_ssh_key": "~/.ssh/id_rsa",
+            "hypervisor_image_dir": "/var/lib/libvirt/images",
+            "vbmc_pre_cmd": "",
+            "vbmc_ip": "192.168.201.114",
+            "vbmc_port": "623"
+        }
+     ]
+```
+
+otherwise, if you want to deploy the controller-3 on the NUC host **pippo02.example.com** configure overcloud-ansible-nodes.json with the following lines:
+
+```json
+    "controller_nodes": [
+...
+        {
+            "name": "controller-3",
+            "index_node": "2",
+            "state": "present",
+            "hypervisor_name": "pippo02.example.com",
+            "hypervisor_user": "root",
+            "hypervisor_ssh_key": "~/.ssh/id_rsa",
+            "hypervisor_image_dir": "/var/lib/libvirt/images",
+            "vbmc_pre_cmd": "",
+            "vbmc_ip": "192.168.201.113",
+            "vbmc_port": "623"
+        }
+    ]
+```
 
 Install undercloud and overcloud
 --------------------------------
