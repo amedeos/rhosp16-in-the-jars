@@ -2,16 +2,18 @@ rhosp16-in-the-jars
 =====================
 Introduction
 ------------
-I use this Ansible playbooks to install RHOSP 16.1 on a couple of (similar) Intel NUC, to test undercloud and overcloud functionalities.
+I use those Ansible playbooks to install RHOSP 16.1 on a couple of (similar) Intel NUC, to test undercloud and overcloud functionalities.
 
-You can use from one host, for example a NUC host, to unlimited hosts, but all RHOSP hosts will be created as virtual machine upon your NUCs.
+You can use them, from only one host, for example an Intel NUC host, to unlimited hosts, but all RHOSP hosts will be created as virtual machine with nested virtualization upon your NUCs.
+
+![architecture](graph/graph.png)
 
 **Warning:** This project / repository / playbooks should be used **only for testing** RHOSP 16.x platform and **NOT** for production environment.
 
 Requirements
 ------------
 ### Operating System and packages
-Your Linux NUC(s) hosts requires the following **packages** installed and working:
+Your Linux NUC hosts requires the following **packages** installed and working:
 
 - libvirt
 - qemu
