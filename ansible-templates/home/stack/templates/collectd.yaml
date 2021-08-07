@@ -1,0 +1,22 @@
+resource_registry:
+  OS::TripleO::Services::Collectd: /usr/share/openstack-tripleo-heat-templates/deployment/metrics/collectd-container-puppet.yaml
+
+parameter_defaults:
+  CollectdConnectionType: ''
+  CollectdExtraPlugins:
+    - write_graphite
+
+  ExtraConfig:
+    #collectd::plugin::write_graphite::carbons::carbon::graphitehost: "192.168.201.10"
+    #collectd::plugin::write_graphite::carbons: ["graphitehost": "192.168.201.10"]
+    collectd::plugin::write_graphite::carbons:
+      graphite:
+        graphitehost: 192.168.201.10
+        interval: 20
+        graphiteprefix: "collectd.test."
+    #collectd::plugin::write_graphite::graphitehost: 192.168.201.10
+    #collectd::plugin::write_graphite:
+    #  carbon_defaults/graphitehost:
+    #    value: "192.168.201.10"
+    #  carbon_defaults/interval:
+    #    value: "30"
