@@ -14,7 +14,7 @@
      ],
     "controller_nodes": [
         {
-            "name": "controller-1",
+            "name": "controller-0",
             "index_node": "0",
             "state": "present",
             "hypervisor_name": "amelab01.example.com",
@@ -26,7 +26,7 @@
             "vbmc_port": "623"
         },
         {
-            "name": "controller-2",
+            "name": "controller-1",
             "index_node": "1",
             "state": "present",
             "hypervisor_name": "amelab01.example.com",
@@ -38,7 +38,7 @@
             "vbmc_port": "623"
         },
         {
-            "name": "controller-3",
+            "name": "controller-2",
             "index_node": "2",
             "state": "present",
             "hypervisor_name": "amelab01.example.com",
@@ -52,33 +52,7 @@
     ],
     "compute_nodes": [
         {
-            "name": "compute-1",
-            "index_node": "0",
-            "state": "present",
-            "hypervisor_name": "localhost",
-            "hypervisor_user": "root",
-            "hypervisor_ssh_key": "~/.ssh/id_rsa",
-            "hypervisor_image_dir": "/var/lib/libvirt/imagesssd",
-            "vbmc_pre_cmd": "",
-            "vbmc_ip": "192.168.201.16",
-            "vbmc_port": "623"
-        },
-        {
-            "name": "compute-2",
-            "index_node": "1",
-            "state": "present",
-            "hypervisor_name": "localhost",
-            "hypervisor_user": "root",
-            "hypervisor_ssh_key": "~/.ssh/id_rsa",
-            "hypervisor_image_dir": "/var/lib/libvirt/imagesssd",
-            "vbmc_pre_cmd": "",
-            "vbmc_ip": "192.168.201.17",
-            "vbmc_port": "623"
-        }
-    ],
-    "ceph_nodes": [
-        {
-            "name": "ceph-1",
+            "name": "compute-0",
             "index_node": "0",
             "state": "present",
             "hypervisor_name": "localhost",
@@ -90,7 +64,7 @@
             "vbmc_port": "623"
         },
         {
-            "name": "ceph-2",
+            "name": "compute-1",
             "index_node": "1",
             "state": "present",
             "hypervisor_name": "localhost",
@@ -102,7 +76,7 @@
             "vbmc_port": "623"
         },
         {
-            "name": "ceph-3",
+            "name": "compute-2",
             "index_node": "2",
             "state": "present",
             "hypervisor_name": "localhost",
