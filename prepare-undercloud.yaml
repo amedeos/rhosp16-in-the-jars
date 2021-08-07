@@ -271,6 +271,7 @@
         - bash-completion
         - openssl-perl
         - tree
+        - redhat-lsb-core
 
   - name: Create User Stack
     user:
