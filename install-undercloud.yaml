@@ -14,7 +14,6 @@
     with_items:
       - "{{ controller_nodes }}"
       - "{{ compute_nodes }}"
-      - "{{ ceph_nodes }}"
     when: item.hypervisor_name != "localhost"
 
   - name: Generating instackenv.json - Step 1
@@ -29,7 +28,6 @@
     with_items:
       - "{{ controller_nodes }}"
       - "{{ compute_nodes }}"
-      - "{{ ceph_nodes }}"
 
   - name: Generating instackenv.json - Step 2
     shell:
@@ -49,7 +47,6 @@
     with_items:
       - "{{ controller_nodes }}"
       - "{{ compute_nodes }}"
-      - "{{ ceph_nodes }}"
 
   - name: Generating instackenv.json - Step 3
     shell:
@@ -72,7 +69,6 @@
     with_items:
       - "{{ controller_nodes }}"
       - "{{ compute_nodes }}"
-      - "{{ ceph_nodes }}"
 
   - name: Generating instackenv.json - Step 4
     fetch:
@@ -83,7 +79,6 @@
     with_items:
       - "{{ controller_nodes }}"
       - "{{ compute_nodes }}"
-      - "{{ ceph_nodes }}"
 
   - name: Generating instackenv.json - Step 5
     shell:
