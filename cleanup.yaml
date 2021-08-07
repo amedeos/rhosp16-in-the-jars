@@ -27,7 +27,6 @@
       - "{{ undercloud_nodes }}"
       - "{{ controller_nodes }}"
       - "{{ compute_nodes }}"
-      - "{{ ceph_nodes }}"
     when: item.hypervisor_name != "localhost"
 
 - name: Clean undercloud
@@ -62,7 +61,6 @@
       - "{{ undercloud_nodes }}"
       - "{{ controller_nodes }}"
       - "{{ compute_nodes }}"
-      - "{{ ceph_nodes }}"
     ignore_errors: True
 
   - name: Undefine virsh domain
@@ -75,7 +73,6 @@
       - "{{ undercloud_nodes }}"
       - "{{ controller_nodes }}"
       - "{{ compute_nodes }}"
-      - "{{ ceph_nodes }}"
     ignore_errors: True
  
   - name: Remove files
@@ -102,17 +99,6 @@
       - "{{ undercloud_nodes }}"
       - "{{ controller_nodes }}"
       - "{{ compute_nodes }}"
-      - "{{ ceph_nodes }}"
-    ignore_errors: True
-
-  - name: Remove ceph journal qcow2 files
-    file:
-      path: "{{ item.hypervisor_image_dir }}/{{ item.name }}-journal.qcow2"
-      state: absent
-    delegate_to: "{{ item.hypervisor_name }}"
-    run_once: True
-    with_items:
-      - "{{ ceph_nodes }}"
     ignore_errors: True
 
   - name: Remove ceph osd-1 qcow2 files
@@ -122,7 +108,7 @@
     delegate_to: "{{ item.hypervisor_name }}"
     run_once: True
     with_items:
-      - "{{ ceph_nodes }}"
+      - "{{ compute_nodes }}"
     ignore_errors: True
 
   - name: Remove ceph osd-2 qcow2 files
@@ -132,7 +118,17 @@
     delegate_to: "{{ item.hypervisor_name }}"
     run_once: True
     with_items:
-      - "{{ ceph_nodes }}"
+      - "{{ compute_nodes }}"
+    ignore_errors: True
+
+  - name: Remove ceph osd-3 qcow2 files
+    file:
+      path: "{{ item.hypervisor_image_dir }}/{{ item.name }}-osd-3.qcow2"
+      state: absent
+    delegate_to: "{{ item.hypervisor_name }}"
+    run_once: True
+    with_items:
+      - "{{ compute_nodes }}"
     ignore_errors: True
 
   - name: Remove qcow2 files
@@ -189,7 +185,6 @@
       - "{{ undercloud_nodes }}"
       - "{{ controller_nodes }}"
       - "{{ compute_nodes }}"
-      - "{{ ceph_nodes }}"
 
   - name: Remove undercloud from ssh/config file
     blockinfile:
