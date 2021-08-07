@@ -14,7 +14,7 @@
     with_items: "{{ compute_nodes }}"
     when: item.hypervisor_name != "localhost"
 
-- name:  Build compute hosts
+- name:  Build HCI compute hosts
   hosts:
     - localhost
     - hypervisor_host
@@ -22,16 +22,25 @@
     - variables.yaml
     - overcloud-ansible-nodes.json
   tasks:
-  - name: Create 100GB Image for each compute
+  - name: Create 100GB Image for each Compute nodes
     shell: |
       qemu-img create -f qcow2 -o preallocation=metadata {{ item.hypervisor_image_dir }}/{{ item.name }}.qcow2 100G
     delegate_to: "{{ item.hypervisor_name }}"
     run_once: True
     with_items: "{{ compute_nodes }}"
 
-  - name: Defining the Overcloud Compute Nodes
+  - name: Create three 200 GB OSD disks
     shell: |
-      virt-install --ram {{ compute_memory }} --vcpus {{ compute_cpu }} --os-variant rhel8.2 --disk path={{ item.hypervisor_image_dir }}/{{ item.name }}.qcow2,device=disk,bus=virtio,format=qcow2 --noautoconsole --vnc --network bridge:{{ bridge_n }} --network bridge:{{ bridge_n }} --network bridge:{{ bridge_n }} --name {{ item.name }} --cpu host-passthrough --dry-run --print-xml > /tmp/{{ item.name }}.xml
+      qemu-img create -f qcow2 -o preallocation=metadata {{ item.hypervisor_image_dir }}/{{ item.name }}-osd-1.qcow2 200G
+      qemu-img create -f qcow2 -o preallocation=metadata {{ item.hypervisor_image_dir }}/{{ item.name }}-osd-2.qcow2 200G
+      qemu-img create -f qcow2 -o preallocation=metadata {{ item.hypervisor_image_dir }}/{{ item.name }}-osd-3.qcow2 200G
+    delegate_to: "{{ item.hypervisor_name }}"
+    run_once: True
+    with_items: "{{ compute_nodes }}"
+
+  - name: Defining the Overcloud Compute nodes
+    shell: |
+      virt-install --ram {{ compute_memory }} --vcpus {{ compute_cpu }} --os-variant rhel8.2 --disk path={{ item.hypervisor_image_dir }}/{{ item.name }}.qcow2,device=disk,bus=virtio,format=qcow2 --disk path={{ item.hypervisor_image_dir }}/{{ item.name }}-osd-1.qcow2,device=disk,bus=virtio,format=qcow2 --disk path={{ item.hypervisor_image_dir }}/{{ item.name }}-osd-2.qcow2,device=disk,bus=virtio,format=qcow2 --disk path={{ item.hypervisor_image_dir }}/{{ item.name }}-osd-3.qcow2,device=disk,bus=virtio,format=qcow2 --noautoconsole --vnc --network bridge:{{ bridge_n }} --network bridge:{{ bridge_n }} --network bridge:{{ bridge_n }} --name {{ item.name }} --cpu host-passthrough --dry-run --print-xml > /tmp/{{ item.name }}.xml
       virsh define /tmp/{{ item.name }}.xml
     delegate_to: "{{ item.hypervisor_name }}"
     run_once: True

@@ -53,8 +53,8 @@ undercloud_memory: 24576
 undercloud_cpu: 4
 controller_memory: 16384
 controller_cpu: 2
-compute_memory: 12288
-compute_cpu: 2
+compute_memory: 20480
+compute_cpu: 4
 ceph_memory: 12288
 ceph_cpu: 2
 #lb_memory: 8192
