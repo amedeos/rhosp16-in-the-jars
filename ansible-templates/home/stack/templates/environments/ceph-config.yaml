@@ -1,0 +1,40 @@
+resource_registry:
+
+  # Just in case we want to redeploy - BE careful in production.
+  OS::TripleO::NodeUserData: /home/stack/templates/environments/wipe-disks.yaml
+
+parameter_defaults:
+  CephAnsibleDisksConfig:
+    devices:
+      - /dev/vdb
+      - /dev/vdc
+      - /dev/vdd
+    osd_scenario: lvm
+    lvm_volumes:
+      - data: '/dev/vdb'
+        crush_device_class: 'ssd'
+      - data: '/dev/vdc'
+        crush_device_class: 'ssd'
+      - data: '/dev/vdd'
+        crush_device_class: 'ssd'
+  CephConfigOverrides:
+    mon_max_pg_per_osd: 2048
+  CephAnsiblePlaybookVerbosity: 1
+
+  CephAnsibleExtraConfig:
+    is_hci: true
+    ceph_mgr_modules: ["pg_autoscaler"]
+
+  CephPools:
+    - name: vms
+      pg_autoscale_mode: on
+      target_size_ratio: 0.2
+      application: rbd
+    - name: volumes
+      pg_autoscale_mode: on
+      target_size_ratio: 0.6
+      application: rbd
+    - name: images
+      pg_autoscale_mode: on
+      target_size_ratio: 0.2
+      application: rbd

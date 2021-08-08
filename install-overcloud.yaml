@@ -21,40 +21,42 @@
     - variables.yaml
     - overcloud-ansible-nodes.json
   tasks:
+  - name: Ensure directories are present
+    file:
+      path: "{{ item.dirname }}"
+      state: directory
+      owner: stack
+      group: stack
+      mode: 0755
+    with_items:
+      - { dirname: "/home/stack/templates" }
+      - { dirname: "/home/stack/templates/environments" }
+
   - name: Generating Fencing Configuration from isntackenv.json
     shell: |
       source /home/stack/stackrc
-      openstack overcloud generate fencing --ipmi-lanplus --ipmi-level administrator --output /home/stack/templates/fencing.yaml /home/stack/instackenv.json
+      openstack overcloud generate fencing --ipmi-lanplus --ipmi-level administrator --output /home/stack/templates/environments/fencing.yaml /home/stack/instackenv.json
 
   - name: Tag controllers
     shell: |
       source /home/stack/stackrc
-      #openstack baremetal node set {{ item.name }} --property capabilities=profile:control,node:controller-{{ item.index_node }},boot_option:local
-      openstack baremetal node set {{ item.name }} --property capabilities=profile:control,boot_option:local
+      openstack baremetal node set {{ item.name }} --property capabilities=node:controller-{{ item.index_node }},boot_option:local
+      #openstack baremetal node set {{ item.name }} --property capabilities=profile:control,boot_option:local
     with_items:
       - "{{ controller_nodes }}"
 
   - name: Tag computes
     shell: |
       source /home/stack/stackrc
-      #openstack baremetal node set {{ item.name }} --property capabilities=profile:compute,node:compute-{{ item.index_node }},boot_option:local
-      openstack baremetal node set {{ item.name }} --property capabilities=profile:compute,boot_option:local
+      openstack baremetal node set {{ item.name }} --property capabilities=node:compute-{{ item.index_node }},boot_option:local
+      #openstack baremetal node set {{ item.name }} --property capabilities=profile:compute,boot_option:local
     with_items:
       - "{{ compute_nodes }}"
 
-  - name: Tag ceph
+  - name: Generate roles_data.yaml
     shell: |
       source /home/stack/stackrc
-      #openstack baremetal node set {{ item.name }} --property capabilities=profile:ceph-storage,node:ceph-{{ item.index_node }},boot_option:local
-      openstack baremetal node set {{ item.name }} --property capabilities=profile:ceph-storage,boot_option:local
-    with_items:
-      - "{{ ceph_nodes }}"
-
-  - name: Copy default roles_data.yaml
-    copy:
-      src: /usr/share/openstack-tripleo-heat-templates/roles_data.yaml
-      dest: /home/stack/templates/roles_data.yaml
-      remote_src: True
+      openstack overcloud roles generate -o /home/stack/templates/environments/roles_data.yaml Controller ComputeHCI Compute CephStorage
 
   - name: Configure environments files
     template:
@@ -64,17 +66,17 @@
       group: stack
       mode: '0644'
     with_items:
-      - { src: ansible-templates/home/stack/templates/node-info.yaml, dest: /home/stack/templates/node-info.yaml }
-      - { src: ansible-templates/home/stack/templates/fix-nova-reserved-host-memory.yaml, dest: /home/stack/templates/fix-nova-reserved-host-memory.yaml }
-      - { src: ansible-templates/home/stack/templates/network_data.yaml, dest: /home/stack/templates/network_data.yaml }
-      - { src: ansible-templates/home/stack/templates/HostnameMap.yaml, dest: /home/stack/templates/HostnameMap.yaml }
-      - { src: ansible-templates/home/stack/templates/ceph-config.yaml, dest: /home/stack/templates/ceph-config.yaml }
-      - { src: ansible-templates/home/stack/templates/wipe-disks.yaml, dest: /home/stack/templates/wipe-disks.yaml }
-      - { src: ansible-templates/home/stack/templates/wipe-disk.sh, dest: /home/stack/templates/wipe-disk.sh }
+      - { src: ansible-templates/home/stack/templates/environments/node-info.yaml, dest: /home/stack/templates/environments/node-info.yaml }
+      - { src: ansible-templates/home/stack/templates/environments/fix-nova-reserved-host-memory.yaml, dest: /home/stack/templates/environments/fix-nova-reserved-host-memory.yaml }
+      - { src: ansible-templates/home/stack/templates/environments/network_data.yaml, dest: /home/stack/templates/environments/network_data.yaml }
+      - { src: ansible-templates/home/stack/templates/environments/HostnameMap.yaml, dest: /home/stack/templates/environments/HostnameMap.yaml }
+      - { src: ansible-templates/home/stack/templates/environments/wipe-disks.yaml, dest: /home/stack/templates/environments/wipe-disks.yaml }
+      - { src: ansible-templates/home/stack/templates/environments/wipe-disk.sh, dest: /home/stack/templates/environments/wipe-disk.sh }
+      - { src: ansible-templates/home/stack/templates/environments/ceph-config.yaml, dest: /home/stack/templates/environments/ceph-config.yaml }
 
   - name: Configure custom domain
     shell: |
-      sed 's/localdomain/{{ domain }}/' /usr/share/openstack-tripleo-heat-templates/environments/predictable-placement/custom-domain.yaml | tee ~/templates/custom-domain.yaml
+      sed 's/localdomain/{{ domain }}/' /usr/share/openstack-tripleo-heat-templates/environments/predictable-placement/custom-domain.yaml | tee ~/templates/environments/custom-domain.yaml
 
   - name: Ensure cert directory is present
     file:
@@ -208,7 +210,7 @@
     shell: |
       THT=/usr/share/openstack-tripleo-heat-templates
       cd $THT
-      tools/process-templates.py -r ~/templates/roles_data.yaml -n ~/templates/network_data.yaml -o ~/rendered
+      tools/process-templates.py -r ~/templates/environments/roles_data.yaml -n ~/templates/environments/network_data.yaml -o ~/rendered
 
   - name: Copy network directory/file from rendered
     shell: |
@@ -216,6 +218,15 @@
       cp -a ~/rendered/network ~/templates/
       cp -f ~/rendered/environments/net-bond-with-vlans.yaml ~/templates/environments/
       cp -f ~/rendered/environments/network-environment.yaml ~/templates/environments/
+
+  #- name: Update network-environment.yaml with ComputeHCI
+  #  blockinfile:
+  #    path: ~/templates/environments/network-environment.yaml
+  #    insertbefore: '# Port assignments for the BlockStorage'
+  #    block: |
+  #      # Port assignments for the ComputeHCI
+  #        OS::TripleO::ComputeHCI::Net::SoftwareConfig:
+  #          ../network/config/single-nic-vlans/compute.yaml
 
   - name: Copy TLS templates
     shell: |

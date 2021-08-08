@@ -1,0 +1,73 @@
+parameter_defaults:
+
+  ControllerSchedulerHints:
+    "capabilities:node": "controller-%index%"
+  ComputeHCISchedulerHints:
+    "capabilities:node": "computehci-%index%"
+  ComputeSchedulerHints:
+    "capabilities:node": "compute-%index%"
+
+  # VIP mappings
+  ControlFixedIPs: [{ "ip_address": "192.168.201.239" }]
+  InternalApiVirtualFixedIPs: [{ "ip_address": "192.168.200.250" }]
+  PublicVirtualFixedIPs: [{ "ip_address": "192.168.203.20" }]
+  StorageVirtualFixedIPs: [{ "ip_address": "192.168.204.250" }]
+  StorageMgmtVirtualFixedIPs: [{ "ip_address": "192.168.205.250" }]
+  RedisVirtualFixedIPs: [{ "ip_address": "192.168.200.251" }]
+  OVNDBsVirtualFixedIPs: [{ "ip_address": "192.168.200.252" }]
+
+  HostnameMap:
+    overcloud-controller-0: controller-0
+    overcloud-controller-1: controller-1
+    overcloud-controller-2: controller-2
+    overcloud-novacompute-hci-0: computehci-0
+    overcloud-novacompute-hci-1: computehci-1
+    overcloud-novacompute-hci-2: computehci-2
+
+  ControllerIPs:
+    tenant:
+      - 192.168.206.10
+      - 192.168.206.11
+      - 192.168.206.12
+    internal_api:
+      - 192.168.200.10
+      - 192.168.200.11
+      - 192.168.200.12
+    external:
+      - 192.168.203.10
+      - 192.168.203.11
+      - 192.168.203.12
+    storage:
+      - 192.168.204.10
+      - 192.168.204.11
+      - 192.168.204.12
+    storage_mgmt:
+      - 192.168.205.10
+      - 192.168.205.11
+      - 192.168.205.12
+    management:
+      - 192.168.202.10
+      - 192.168.202.11
+      - 192.168.202.12
+
+  ComputeHCIIPs:
+    internal_api:
+      - 192.168.200.20
+      - 192.168.200.21
+      - 192.168.200.22
+    storage:
+      - 192.168.204.20
+      - 192.168.204.21
+      - 192.168.204.22
+    storage_mgmt:
+      - 192.168.205.20
+      - 192.168.205.21
+      - 192.168.205.22
+    tenant:
+      - 192.168.206.20
+      - 192.168.206.21
+      - 192.168.206.22
+    management:
+      - 192.168.202.20
+      - 192.168.202.21
+      - 192.168.202.22

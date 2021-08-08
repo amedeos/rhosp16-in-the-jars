@@ -52,7 +52,7 @@
     ],
     "compute_nodes": [
         {
-            "name": "compute-0",
+            "name": "computehci-0",
             "index_node": "0",
             "state": "present",
             "hypervisor_name": "localhost",
@@ -64,7 +64,7 @@
             "vbmc_port": "623"
         },
         {
-            "name": "compute-1",
+            "name": "computehci-1",
             "index_node": "1",
             "state": "present",
             "hypervisor_name": "localhost",
@@ -76,7 +76,7 @@
             "vbmc_port": "623"
         },
         {
-            "name": "compute-2",
+            "name": "computehci-2",
             "index_node": "2",
             "state": "present",
             "hypervisor_name": "localhost",
