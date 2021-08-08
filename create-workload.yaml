@@ -1,0 +1,148 @@
+- name:  Add Undercloud VM/Node
+  hosts: localhost
+  vars_files:
+    - variables.yaml
+  tasks:
+  - name: Add undercloud group-host
+    add_host:
+      name: "{{ undercloud_n }}.{{ domain }}"
+      ansible_ssh_private_key_file: ansible-ssh/id_rsa
+      ansible_ssh_user: stack
+      groups:
+        - undercloud
+
+- name:  Install Overcloud
+  hosts: undercloud
+  vars_files:
+    - variables.yaml
+  tasks:
+  - name: Download qcow2 image (CirrOS ??)
+    get_url:
+      url: "{{ image_instance_location }}"
+      dest: "/home/stack/{{ image_instance }}"
+      mode: '0664'
+      owner: stack
+      group: stack
+
+  - name: Delete instances
+    shell: |
+      source /home/stack/overcloudrc
+      openstack server delete {{ image_instance }}-0001
+      openstack server delete {{ image_instance }}-0002
+    ignore_errors: True
+
+  - name: Delete floating ip
+    shell: |
+      source /home/stack/overcloudrc
+      openstack floating ip delete {{ fip_instance_1 }}
+      openstack floating ip delete {{ fip_instance_2 }}
+    ignore_errors: True
+
+  - name: Delete router
+    shell: |
+      source /home/stack/overcloudrc
+      openstack router remove subnet router2007 privatesub
+      openstack router delete router2007
+    ignore_errors: True
+
+  - name: Delete private network
+    shell: |
+      source /home/stack/overcloudrc
+      openstack subnet delete privatesub
+      openstack network delete privatenet
+    ignore_errors: True
+
+  - name: Delete security group
+    shell: |
+      source /home/stack/overcloudrc
+      openstack security group delete ALL_OPEN
+    ignore_errors: True
+
+  - name: Delete keypair
+    shell: |
+      source /home/stack/overcloudrc
+      openstack keypair delete undercloud_key
+    ignore_errors: True
+
+  - name: Delete CirrOS image
+    shell: |
+      source /home/stack/overcloudrc
+      openstack image delete {{ image_instance }}
+    ignore_errors: True
+
+  - name: Delete flavor m1.tiny
+    shell: |
+      source /home/stack/overcloudrc
+      openstack flavor delete m1.tiny
+    ignore_errors: True
+
+  - name: Create floating ip network
+    shell: |
+      source /home/stack/overcloudrc
+      openstack network create --external --share --external  --provider-network-type vlan --provider-segment {{ fip_vlanid }} --provider-physical-network datacentre external2007
+    ignore_errors: True
+
+  - name: Create floating ip subnet
+    shell: |
+      source /home/stack/overcloudrc
+      openstack subnet create --network external2007 --gateway {{ fip_gw }} --allocation-pool start={{ fip_pool_start }},end={{ fip_pool_end }} --subnet-range {{ fip_subnet }} external-subnet2007
+    ignore_errors: True
+
+  - name: Create private network
+    shell: |
+      source /home/stack/overcloudrc
+      openstack network create privatenet --provider-network-type=geneve --provider-segment 100
+
+  - name: Create private subnet
+    shell: |
+      source /home/stack/overcloudrc
+      openstack subnet create --network privatenet --subnet-range 10.100.100.0/24 privatesub
+
+  - name: Create router
+    shell: |
+      source /home/stack/overcloudrc
+      openstack router create router2007
+      openstack router set router2007 --external-gateway external2007
+      openstack router add subnet router2007 privatesub
+
+  - name: Create flavor m1.tiny
+    shell: |
+      source /home/stack/overcloudrc
+      openstack flavor create m1.tiny --ram 512 --disk 1 --public
+
+  - name: Upload CirrOS image
+    shell: |
+      source /home/stack/overcloudrc
+      openstack image create {{ image_instance }} --public --file /home/stack/{{ image_instance }} --disk-format qcow2 --container-format bare
+
+  - name: Create ALL_OPEN security group
+    shell: |
+      source /home/stack/overcloudrc
+      openstack security group create ALL_OPEN
+      openstack security group rule create --proto icmp --remote-ip 0.0.0.0/0 ALL_OPEN
+      openstack security group rule create --proto tcp --remote-ip 0.0.0.0/0 --dst-port 1:65525 ALL_OPEN
+      openstack security group rule create --proto udp --remote-ip 0.0.0.0/0 --dst-port 1:65525 ALL_OPEN
+
+  - name: Create keypair
+    shell: |
+      source /home/stack/overcloudrc
+      openstack keypair create --public-key /home/stack/.ssh/id_rsa.pub undercloud_key
+
+  - name: Create instances
+    shell: |
+      source /home/stack/overcloudrc
+      net_mgmt_id=$(openstack network list | grep privatenet | awk '{print $2}')
+      openstack server create --flavor m1.tiny --image {{ image_instance }} --nic net-id=$net_mgmt_id --security-group ALL_OPEN --key-name undercloud_key {{ image_instance }}-0001
+      openstack server create --flavor m1.tiny --image {{ image_instance }} --nic net-id=$net_mgmt_id --security-group ALL_OPEN --key-name undercloud_key {{ image_instance }}-0002
+
+  - name: Create floating ip
+    shell: |
+      source /home/stack/overcloudrc
+      openstack floating ip create --floating-ip-address {{ fip_instance_1 }} external2007
+      openstack floating ip create --floating-ip-address {{ fip_instance_2 }} external2007
+
+  - name: Set floating ip to instances
+    shell: |
+      source /home/stack/overcloudrc
+      openstack server add floating ip {{ image_instance }}-0001 {{ fip_instance_1 }}
+      openstack server add floating ip {{ image_instance }}-0002 {{ fip_instance_2 }}
