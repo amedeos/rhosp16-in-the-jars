@@ -50,16 +50,14 @@ OpenStack requires various hosts, below the list of Virtual Machines created and
 | VM | Role | vCPU | vRAM | Disks |
 | -- | ---- | :----: | :----: | :-----: |
 | undercloud | undercloud | 4 | 24G | 1x100G |
+| controller-0 | Controller | 2 | 16G | 1x100G |
 | controller-1 | Controller | 2 | 16G | 1x100G |
 | controller-2 | Controller | 2 | 16G | 1x100G |
-| controller-3 | Controller | 2 | 16G | 1x100G |
-| compute-1 | Compute | 2 | 12G | 1x100G |
-| compute-2 | Compute | 2 | 12G | 1x100G |
-| ceph-1 | CephStorage | 2 | 12G | 1x100G + 3x200G |
-| ceph-2 | CephStorage | 2 | 12G | 1x100G + 3x200G |
-| ceph-2 | CephStorage | 2 | 12G | 1x100G + 3x200G |
+| computehci-0 | ComputeHCI | 4 | 20G | 1x100G + 3x200G |
+| computehci-1 | ComputeHCI | 4 | 20G | 1x100G + 3x200G |
+| computehci-2 | ComputeHCI | 4 | 20G | 1x100G + 3x200G |
 | | | | | |
-| | **Total:** | **20** | **132G** | **1.5T** |
+| | **Total:** | **22** | **132G** | **2.5T** |
 
 The most critical resource is the vRAM, because all hosts, during the overcloud deploy will be memory consuming; instead all disks will be created in thin provisioning and for this reason a clean deploy will take up to 10-15% provisioned space.
 
