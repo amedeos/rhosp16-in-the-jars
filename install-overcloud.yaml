@@ -45,11 +45,23 @@
     with_items:
       - "{{ controller_nodes }}"
 
+  - name: Tag HCI computes
+    shell: |
+      source /home/stack/stackrc
+      openstack baremetal node set {{ item.name }} --property capabilities=node:computehci-{{ item.index_node }},boot_option:local
+      #openstack baremetal node set {{ item.name }} --property capabilities=profile:compute,boot_option:local
+    when:
+      - item.is_hci == "true"
+    with_items:
+      - "{{ compute_nodes }}"
+
   - name: Tag computes
     shell: |
       source /home/stack/stackrc
       openstack baremetal node set {{ item.name }} --property capabilities=node:compute-{{ item.index_node }},boot_option:local
       #openstack baremetal node set {{ item.name }} --property capabilities=profile:compute,boot_option:local
+    when:
+      - not item.is_hci == "true"
     with_items:
       - "{{ compute_nodes }}"
 
@@ -269,9 +281,6 @@
       sed -i -e '/-----BEGIN CERT/,/-----END CERT/{s/^/    /g}' ~/templates/inject-trust-anchor.yaml
     when:
       - enable_tls|bool
-
-  - name: simple exit
-    shell: exit 1
 
   - name: Run deploy.sh
     shell: |
