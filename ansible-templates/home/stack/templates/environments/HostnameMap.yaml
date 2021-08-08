@@ -20,9 +20,9 @@ parameter_defaults:
     overcloud-controller-0: controller-0
     overcloud-controller-1: controller-1
     overcloud-controller-2: controller-2
-    overcloud-novacompute-hci-0: computehci-0
-    overcloud-novacompute-hci-1: computehci-1
-    overcloud-novacompute-hci-2: computehci-2
+    overcloud-computehci-0: computehci-0
+    overcloud-computehci-1: computehci-1
+    overcloud-computehci-2: computehci-2
 
   ControllerIPs:
     tenant:
