@@ -272,6 +272,7 @@
         - openssl-perl
         - tree
         - redhat-lsb-core
+        - ipmitool
 
   - name: Create User Stack
     user:

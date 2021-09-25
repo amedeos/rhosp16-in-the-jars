@@ -8,13 +8,13 @@ parameter_defaults:
     "capabilities:node": "compute-%index%"
 
   # VIP mappings
-  ControlFixedIPs: [{ "ip_address": "192.168.201.239" }]
-  InternalApiVirtualFixedIPs: [{ "ip_address": "192.168.200.250" }]
-  PublicVirtualFixedIPs: [{ "ip_address": "192.168.203.20" }]
-  StorageVirtualFixedIPs: [{ "ip_address": "192.168.204.250" }]
-  StorageMgmtVirtualFixedIPs: [{ "ip_address": "192.168.205.250" }]
-  RedisVirtualFixedIPs: [{ "ip_address": "192.168.200.251" }]
-  OVNDBsVirtualFixedIPs: [{ "ip_address": "192.168.200.252" }]
+  ControlFixedIPs: [{ "ip_address": "{{ control_fixed_ips }}" }]
+  InternalApiVirtualFixedIPs: [{ "ip_address": "{{ internalapi_virtual_fixed_ips }}" }]
+  PublicVirtualFixedIPs: [{ "ip_address": "{{ public_virtual_fixed_ips }}" }]
+  StorageVirtualFixedIPs: [{ "ip_address": "{{ storage_virtual_fixed_ips }}" }]
+  StorageMgmtVirtualFixedIPs: [{ "ip_address": "{{ storage_mgmt_virtual_fixed_ips }}" }]
+  RedisVirtualFixedIPs: [{ "ip_address": "{{ redis_virtual_fixed_ips }}" }]
+  OVNDBsVirtualFixedIPs: [{ "ip_address": "{{ ovndbs_virtual_fixed_ips }}" }]
 
   HostnameMap:
     overcloud-controller-0: controller-0

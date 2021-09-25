@@ -21,6 +21,12 @@
     - variables.yaml
     - overcloud-ansible-nodes.json
   tasks:
+  - name: Generate bash autocomplete file
+    shell: |
+      source /home/stack/stackrc
+      openstack complete 2>/dev/null | sudo tee /etc/bash_completion.d/osc.bash_completion
+      sudo sed -i -e 's/^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9].*//g' /etc/bash_completion.d/osc.bash_completion
+
   - name: Ensure directories are present
     file:
       path: "{{ item.dirname }}"
@@ -168,7 +174,7 @@
     when:
       - enable_tls|bool
 
-  - name: Verify if serial is present serial
+  - name: Verify if serial is present
     stat:
       path: /etc/pki/CA/serial
     register: serial_file
@@ -242,9 +248,9 @@
 
   - name: Copy TLS templates
     shell: |
-      cp -f ~/rendered/environments/ssl/enable-tls.yaml ~/templates
-      cp -f ~/rendered/environments/ssl/inject-trust-anchor.yaml ~/templates/inject-trust-anchor.yaml
-      sed -i 's#\.\./\.\.#/usr/share/openstack-tripleo-heat-templates#' ~/templates/inject-trust-anchor.yaml
+      cp -f ~/rendered/environments/ssl/enable-tls.yaml ~/templates/environments
+      cp -f ~/rendered/environments/ssl/inject-trust-anchor.yaml ~/templates/environments/inject-trust-anchor.yaml
+      sed -i 's#\.\./\.\.#/usr/share/openstack-tripleo-heat-templates#' ~/templates/environments/inject-trust-anchor.yaml
     when:
       - enable_tls|bool
 
@@ -257,28 +263,28 @@
 
   - name: Update enable-tls.yaml with Certificate
     shell: |
-      sed -i -e '/The contents of your certificate go here/r /home/stack/cert/overcloud.crt.pem.clean' -e '/The contents of your certificate go here/ d' ~/templates/enable-tls.yaml
-      sed -i  -e '/-----BEGIN CERT/,/-----END CERT/{s/^/    /g}' ~/templates/enable-tls.yaml
+      sed -i -e '/The contents of your certificate go here/r /home/stack/cert/overcloud.crt.pem.clean' -e '/The contents of your certificate go here/ d' ~/templates/environments/enable-tls.yaml
+      sed -i  -e '/-----BEGIN CERT/,/-----END CERT/{s/^/    /g}' ~/templates/environments/enable-tls.yaml
     when:
       - enable_tls|bool
 
   - name: Update enable-tls.yaml with private key
     shell: |
-      sed -i -e '/The contents of the private key go here/r /home/stack/cert/overcloud-privkey.pem' -e '/The contents of the private key go here/ d' ~/templates/enable-tls.yaml
-      sed -i -e '/-----BEGIN RSA/,/-----END RSA/{s/^/    /g}' ~/templates/enable-tls.yaml
+      sed -i -e '/The contents of the private key go here/r /home/stack/cert/overcloud-privkey.pem' -e '/The contents of the private key go here/ d' ~/templates/environments/enable-tls.yaml
+      sed -i -e '/-----BEGIN RSA/,/-----END RSA/{s/^/    /g}' ~/templates/environments/enable-tls.yaml
     when:
       - enable_tls|bool
 
   - name: Update PublicTLSCAFile
     shell: |
-      sed -i "s#PublicTLSCAFile: ''#PublicTLSCAFile: '/etc/pki/ca-trust/source/anchors/ca.crt.pem'#" ~/templates/enable-tls.yaml
+      sed -i "s#PublicTLSCAFile: ''#PublicTLSCAFile: '/etc/pki/ca-trust/source/anchors/ca.crt.pem'#" ~/templates/environments/enable-tls.yaml
     when:
       - enable_tls|bool
 
   - name: Copy CA to the inject-trust-anchor.yaml
     shell: |
-      sed -i -e '/The contents of your certificate go here/r /home/stack/cert/ca.crt.pem' -e '/The contents of your certificate go here/ d' ~/templates/inject-trust-anchor.yaml
-      sed -i -e '/-----BEGIN CERT/,/-----END CERT/{s/^/    /g}' ~/templates/inject-trust-anchor.yaml
+      sed -i -e '/The contents of your certificate go here/r /home/stack/cert/ca.crt.pem' -e '/The contents of your certificate go here/ d' ~/templates/environments/inject-trust-anchor.yaml
+      sed -i -e '/-----BEGIN CERT/,/-----END CERT/{s/^/    /g}' ~/templates/environments/inject-trust-anchor.yaml
     when:
       - enable_tls|bool
 

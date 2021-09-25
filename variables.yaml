@@ -77,11 +77,21 @@ num_ceph: 3
 #ceph_2_ip: 192.168.201.52
 #ceph_3_ip: 192.168.201.53
 #PublicVirtualFixedIPs
-public_virtual_fixed_ips: 192.168.203.150
+public_virtual_fixed_ips: 192.168.203.20
 #ControlFixedIPs
-control_fixed_ips: 192.168.201.150
+control_fixed_ips: 192.168.201.239
+#InternalApiVirtualFixedIPs
+internalapi_virtual_fixed_ips: 192.168.200.250
+#StorageVirtualFixedIPs
+storage_virtual_fixed_ips: 192.168.204.250
+#StorageMgmtVirtualFixedIPs
+storage_mgmt_virtual_fixed_ips: 192.168.205.250
+#RedisVirtualFixedIPs
+redis_virtual_fixed_ips: 192.168.200.251
+#OVNDBsVirtualFixedIPs
+ovndbs_virtual_fixed_ips: 192.168.200.252
 supported_os: rhel8
-enable_tls: False
+enable_tls: True
 ### floating ip network
 fip_vlanid: 2007
 fip_subnet: 192.168.207.0/24

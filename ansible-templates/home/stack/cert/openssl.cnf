@@ -28,7 +28,7 @@ keyUsage = nonRepudiation, digitalSignature, keyEncipherment
 subjectAltName = @alt_names
 
 [alt_names]
-#IP.1 = 10.0.0.1
-#DNS.1 = 10.0.0.1
-DNS.1 = overcloud.{{ domain }}
+IP.1 = {{ public_virtual_fixed_ips }}
+DNS.1 = {{ public_virtual_fixed_ips }}
+DNS.2 = overcloud.{{ domain }}
 #DNS.2 = myovercloud.example.com

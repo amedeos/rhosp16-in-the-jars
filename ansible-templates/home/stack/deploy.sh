@@ -30,8 +30,9 @@ openstack overcloud deploy --templates $THT \
 -e $CNF/environments/ceph-config.yaml \
 -e $CNF/environments/custom-domain.yaml \
 {% if enable_tls is sameas true %}
--e $CNF/enable-tls.yaml \
--e $CNF/inject-trust-anchor.yaml \
+-e $CNF/environments/enable-tls.yaml \
+-e $CNF/environments/inject-trust-anchor.yaml \
+-e $THT/environments/ssl/tls-endpoints-public-dns.yaml \
 {% endif %}
 -e $CNF/environments/HostnameMap.yaml \
 -e $CNF/environments/fix-nova-reserved-host-memory.yaml 2>&1 | tee -a /home/stack/overcloud-install-$DATE.log
