@@ -16,6 +16,27 @@
   vars_files:
     - variables.yaml
   tasks:
+  - name: create the storage provider network for ganesha
+    shell: |
+      source /home/stack/overcloudrc
+      openstack network create StorageNFS --share  --provider-network-type vlan --provider-physical-network datacentre --provider-segment {{ storage_nfs_vlan }}
+    when: ganesha_storage_nfs|bool
+    ignore_errors: True
+
+  - name: Create the storage subnet for ganesha
+    shell: |
+      source /home/stack/overcloudrc
+      openstack subnet create --allocation-pool start={{ storage_nfs_pools_start }},end={{ storage_nfs_pools_end }} --dhcp --network StorageNFS --subnet-range {{ storage_nfs_ip_subnet }} --gateway none StorageNFSSubnet
+    when: ganesha_storage_nfs|bool
+    ignore_errors: True
+
+  - name: Configure a default share type for ganesha
+    shell: |
+      source /home/stack/overcloudrc
+      manila type-create default false
+    when: ganesha_storage_nfs|bool
+    ignore_errors: True
+
   - name: Download qcow2 image (CirrOS ??)
     get_url:
       url: "{{ image_instance_location }}"

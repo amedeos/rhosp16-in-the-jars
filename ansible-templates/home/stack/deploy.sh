@@ -21,6 +21,10 @@ openstack overcloud deploy --templates $THT \
 -n $CNF/environments/network_data.yaml \
 -e $THT/environments/network-isolation.yaml \
 -e $THT/environments/ceph-ansible/ceph-ansible.yaml \
+{% if ganesha_storage_nfs is sameas true %}
+-e $THT/environments/ceph-ansible/ceph-mds.yaml \
+-e $THT/environments/manila-cephfsganesha-config.yaml \
+{% endif %}
 -e $THT/environments/disable-telemetry.yaml \
 -e $CNF/environments/network-environment.yaml \
 -e $CNF/environments/net-bond-with-vlans.yaml \

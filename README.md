@@ -43,6 +43,7 @@ The Ansible Playbooks will use the following VLANs for RHOSP:
 | 2005 | StorageMgmt | 192.168.205.0/24 | |
 | 2006 | Tenant | 192.168.206.0/24 | |
 | 2007 | FloatingIP | 192.168.207.0/24 | | 192.168.207.1 |
+| 2008 | StorageNFS | 192.168.208.0/24 | | 192.168.208.1 |
 
 ### vCPU and vRAM
 OpenStack requires various hosts, below the list of Virtual Machines created and their flavor:

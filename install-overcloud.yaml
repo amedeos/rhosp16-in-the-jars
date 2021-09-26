@@ -75,6 +75,26 @@
     shell: |
       source /home/stack/stackrc
       openstack overcloud roles generate -o /home/stack/templates/environments/roles_data.yaml Controller ComputeHCI Compute CephStorage
+    when: not ganesha_storage_nfs|bool
+
+  - name: Generate roles_data.yaml for ganesha
+    shell: |
+      source /home/stack/stackrc
+      openstack overcloud roles generate -o /home/stack/templates/environments/roles_data.yaml ControllerStorageNfs ComputeHCI Compute CephStorage
+    when: ganesha_storage_nfs|bool
+
+  - name: Insert deprecated_nic_config_name for ganesha
+    blockinfile:
+      path: /home/stack/templates/environments/roles_data.yaml
+      insertafter: "deprecated_param_image: 'controllerImage'"
+      block: |2
+          deprecated_nic_config_name: 'controller.yaml'
+    when: ganesha_storage_nfs|bool
+
+  - name: Rename role ControllerStorageNfs to Controller
+    shell: |
+      sed -i 's/ControllerStorageNfs/Controller/g' /home/stack/templates/environments/roles_data.yaml
+    when: ganesha_storage_nfs|bool
 
   - name: Configure environments files
     template:

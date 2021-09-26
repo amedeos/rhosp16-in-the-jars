@@ -45,3 +45,12 @@
   ip_subnet: '192.168.202.0/24'
   allocation_pools: [{'start': '192.168.202.101', 'end': '192.168.202.149'}]
 
+{% if ganesha_storage_nfs is sameas true %}
+- name: StorageNFS
+  vip: true
+  name_lower: storage_nfs
+  vlan: {{ storage_nfs_vlan }}
+  ip_subnet: '{{ storage_nfs_ip_subnet }}'
+  allocation_pools: [{'start': '{{ storage_nfs_pools_start }}', 'end': '{{ storage_nfs_pools_end }}'}]
+
+{% endif %}

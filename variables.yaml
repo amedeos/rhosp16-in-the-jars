@@ -67,15 +67,6 @@ image_instance_location: http://download.cirros-cloud.net/0.5.1/cirros-0.5.1-x86
 num_controller: 3
 num_compute: 2
 num_ceph: 3
-#ansible_python_interpreter: /usr/libexec/platform-python
-#controller_1_ip: 192.168.201.31
-#controller_2_ip: 192.168.201.32
-#controller_3_ip: 192.168.201.33
-#compute_1_ip: 192.168.201.41
-#compute_2_ip: 192.168.201.42
-#ceph_1_ip: 192.168.201.51
-#ceph_2_ip: 192.168.201.52
-#ceph_3_ip: 192.168.201.53
 #PublicVirtualFixedIPs
 public_virtual_fixed_ips: 192.168.203.20
 #ControlFixedIPs
@@ -91,7 +82,15 @@ redis_virtual_fixed_ips: 192.168.200.251
 #OVNDBsVirtualFixedIPs
 ovndbs_virtual_fixed_ips: 192.168.200.252
 supported_os: rhel8
+# set enable_tls to true in order to have public endpoint in TLS
 enable_tls: True
+### ganesha parameters
+ganesha_storage_nfs: True
+storage_nfs_vlan: 2008
+storage_nfs_pools_start: 192.168.208.101
+storage_nfs_pools_end: 192.168.208.199
+storage_nfs_ip_subnet: 192.168.208.0/24
+### ganesha parameters
 ### floating ip network
 fip_vlanid: 2007
 fip_subnet: 192.168.207.0/24
