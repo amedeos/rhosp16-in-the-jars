@@ -39,8 +39,8 @@ undercloud_ip: 192.168.122.30
 undercloud_ip_prv: 192.168.201.30
 undercloud_netmask: 24
 undercloud_local_interface: eth1
-undercloud_public_vip: 192.168.201.100
-undercloud_admin_vip: 192.168.201.101
+undercloud_public_vip: 192.168.201.98
+undercloud_admin_vip: 192.168.201.99
 undercloud_dhcp_start: 192.168.201.120
 undercloud_dhcp_end: 192.168.201.140
 undercloud_network_cidr: 192.168.201.0
@@ -53,8 +53,10 @@ undercloud_memory: 24576
 undercloud_cpu: 4
 controller_memory: 16384
 controller_cpu: 2
-compute_memory: 20480
-compute_cpu: 4
+compute_memory: 32768
+compute_cpu: 6
+computehci_memory: 20480
+computehci_cpu: 4
 ceph_memory: 12288
 ceph_cpu: 2
 #lb_memory: 8192

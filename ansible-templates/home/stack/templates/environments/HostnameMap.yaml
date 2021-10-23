@@ -23,6 +23,9 @@ parameter_defaults:
     overcloud-computehci-0: computehci-0
     overcloud-computehci-1: computehci-1
     overcloud-computehci-2: computehci-2
+    overcloud-novacompute-0: compute-0
+    overcloud-novacompute-1: compute-1
+    overcloud-novacompute-2: compute-2
 
   ControllerIPs:
     tenant:
@@ -71,3 +74,22 @@ parameter_defaults:
       - 192.168.202.20
       - 192.168.202.21
       - 192.168.202.22
+
+  ComputeIPs:
+    internal_api:
+      - 192.168.200.23
+      - 192.168.200.24
+      - 192.168.200.25
+    storage:
+      - 192.168.204.23
+      - 192.168.204.24
+      - 192.168.204.25
+    tenant:
+      - 192.168.206.23
+      - 192.168.206.24
+      - 192.168.206.25
+    management:
+      - 192.168.202.23
+      - 192.168.202.24
+      - 192.168.202.25
+

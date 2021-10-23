@@ -5,4 +5,4 @@ parameter_defaults:
 
   ControllerCount: 3
   ComputeHCICount: 3
-  ComputeCount: 0
+  ComputeCount: 3

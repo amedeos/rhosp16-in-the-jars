@@ -17,36 +17,36 @@
             "name": "controller-0",
             "index_node": "0",
             "state": "present",
-            "hypervisor_name": "amelab01.example.com",
+            "hypervisor_name": "amelab02.example.com",
             "hypervisor_user": "root",
             "hypervisor_ssh_key": "~/.ssh/id_rsa",
             "hypervisor_image_dir": "/var/lib/libvirt/images",
             "vbmc_pre_cmd": "",
-            "vbmc_ip": "192.168.201.111",
+            "vbmc_ip": "192.168.201.102",
             "vbmc_port": "623"
         },
         {
             "name": "controller-1",
             "index_node": "1",
             "state": "present",
-            "hypervisor_name": "amelab01.example.com",
+            "hypervisor_name": "amelab02.example.com",
             "hypervisor_user": "root",
             "hypervisor_ssh_key": "~/.ssh/id_rsa",
             "hypervisor_image_dir": "/var/lib/libvirt/images",
             "vbmc_pre_cmd": "",
-            "vbmc_ip": "192.168.201.112",
+            "vbmc_ip": "192.168.201.103",
             "vbmc_port": "623"
         },
         {
             "name": "controller-2",
             "index_node": "2",
             "state": "present",
-            "hypervisor_name": "amelab01.example.com",
+            "hypervisor_name": "amelab02.example.com",
             "hypervisor_user": "root",
             "hypervisor_ssh_key": "~/.ssh/id_rsa",
             "hypervisor_image_dir": "/var/lib/libvirt/images",
             "vbmc_pre_cmd": "",
-            "vbmc_ip": "192.168.201.113",
+            "vbmc_ip": "192.168.201.104",
             "vbmc_port": "623"
         }
     ],
@@ -88,6 +88,45 @@
             "hypervisor_image_dir": "/var/lib/libvirt/imagesssd",
             "vbmc_pre_cmd": "",
             "vbmc_ip": "192.168.201.15",
+            "vbmc_port": "623"
+        },
+        {
+            "name": "compute-0",
+            "index_node": "0",
+            "is_hci": "false",
+            "state": "present",
+            "hypervisor_name": "localhost",
+            "hypervisor_user": "root",
+            "hypervisor_ssh_key": "~/.ssh/id_rsa",
+            "hypervisor_image_dir": "/var/lib/libvirt/imagesssd",
+            "vbmc_pre_cmd": "",
+            "vbmc_ip": "192.168.201.16",
+            "vbmc_port": "623"
+        },
+        {
+            "name": "compute-1",
+            "index_node": "1",
+            "is_hci": "false",
+            "state": "present",
+            "hypervisor_name": "amelab01.example.com",
+            "hypervisor_user": "root",
+            "hypervisor_ssh_key": "~/.ssh/id_rsa",
+            "hypervisor_image_dir": "/var/lib/libvirt/images",
+            "vbmc_pre_cmd": "",
+            "vbmc_ip": "192.168.201.115",
+            "vbmc_port": "623"
+        },
+        {
+            "name": "compute-2",
+            "index_node": "2",
+            "is_hci": "false",
+            "state": "present",
+            "hypervisor_name": "amelab02.example.com",
+            "hypervisor_user": "root",
+            "hypervisor_ssh_key": "~/.ssh/id_rsa",
+            "hypervisor_image_dir": "/var/lib/libvirt/images",
+            "vbmc_pre_cmd": "",
+            "vbmc_ip": "192.168.201.105",
             "vbmc_port": "623"
         }
     ]
