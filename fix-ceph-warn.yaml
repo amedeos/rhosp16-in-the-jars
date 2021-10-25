@@ -1,0 +1,38 @@
+- name:  Add Undercloud VM/Node
+  hosts: localhost
+  vars_files:
+    - variables.yaml
+    - overcloud-ansible-nodes.json
+  tasks:
+  - name: Add undercloud group-host
+    add_host:
+      name: "{{ undercloud_n }}.{{ domain }}"
+      ansible_ssh_user: stack
+      ansible_ssh_pass: "{{ secure_password }}"
+      ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand="ssh -W %h:%p -q {{ item.hypervisor_user }}@{{ item.hypervisor_name }}"'
+      groups:
+        - undercloud
+    with_items:
+      - "{{ undercloud_nodes }}"
+
+- name:  Fix ceph warn
+  hosts: undercloud
+  vars_files:
+    - variables.yaml
+    - overcloud-ansible-nodes.json
+  tasks:
+  - name: Generate OC ansible inventory
+    shell: |
+      source /home/stack/stackrc
+      tripleo-ansible-inventory --stack overcloud --ansible_ssh_user heat-admin --static-yaml-inventory /home/stack/inventory.yaml
+
+  - name: Disable mon auth_allow_insecure_global_id_reclaim
+    shell: |
+      ansible -m shell Controller[0] -b -i /home/stack/inventory.yaml  --ssh-extra-args='-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ' -a 'podman exec ceph-mon-controller-0 ceph config set mon auth_allow_insecure_global_id_reclaim false'
+
+  - name: Set autoscale for manila pools
+    shell: |
+      ansible -m shell Controller[0] -b -i /home/stack/inventory.yaml  --ssh-extra-args='-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ' -a 'podman exec ceph-mon-controller-0 ceph osd pool set manila_data target_size_ratio 0.2'
+      ansible -m shell Controller[0] -b -i /home/stack/inventory.yaml  --ssh-extra-args='-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ' -a 'podman exec ceph-mon-controller-0 ceph osd pool set manila_metadata target_size_ratio 0.1'
+      ansible -m shell Controller[0] -b -i /home/stack/inventory.yaml  --ssh-extra-args='-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ' -a 'podman exec ceph-mon-controller-0 ceph osd pool set manila_data pg_autoscale_mode on'
+      ansible -m shell Controller[0] -b -i /home/stack/inventory.yaml  --ssh-extra-args='-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ' -a 'podman exec ceph-mon-controller-0 ceph osd pool set manila_metadata pg_autoscale_mode on'

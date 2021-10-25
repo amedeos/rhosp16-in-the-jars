@@ -20,3 +20,7 @@
 - import_playbook: install-overcloud.yaml
   tags:
     - install-overcloud
+
+- import_playbook: fix-ceph-warn.yaml
+  tags:
+    - fix-ceph-warn

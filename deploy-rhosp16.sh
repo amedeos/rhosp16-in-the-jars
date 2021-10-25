@@ -48,3 +48,12 @@ if [ $retVal -ne 0 ]; then
     exit $retVal
 fi
 
+#fix ceph warn
+echo "Run fix-ceph-warn"
+$ANSIBLE_PLAYBOOK --vault-password-file $VAULT_FILE --tags fix-ceph-warn main.yml
+retVal=$?
+if [ $retVal -ne 0 ]; then
+    echo "Error in fix-ceph-warn"
+    exit $retVal
+fi
+
