@@ -26,6 +26,7 @@ openstack overcloud deploy --templates $THT \
 -e $THT/environments/manila-cephfsganesha-config.yaml \
 {% endif %}
 -e $THT/environments/disable-telemetry.yaml \
+-e $THT/environments/services/octavia.yaml \
 -e $CNF/environments/network-environment.yaml \
 -e $CNF/environments/net-bond-with-vlans.yaml \
 -e $CNF/environments/fencing.yaml \
