@@ -12,7 +12,9 @@
       groups:
         - hypervisor_host
     with_items: "{{ compute_nodes }}"
-    when: item.hypervisor_name != "localhost"
+    when:
+      - item.hypervisor_name != "localhost"
+      - item.state == "present"
 
 - name:  Build HCI compute hosts
   hosts:
@@ -27,6 +29,8 @@
       qemu-img create -f qcow2 -o preallocation=metadata {{ item.hypervisor_image_dir }}/{{ item.name }}.qcow2 100G
     delegate_to: "{{ item.hypervisor_name }}"
     run_once: True
+    when:
+      - item.state == "present"
     with_items: "{{ compute_nodes }}"
 
   - name: Create three 200 GB OSD disks
@@ -38,6 +42,7 @@
     run_once: True
     when:
       - item.is_hci == "true"
+      - item.state == "present"
     with_items: "{{ compute_nodes }}"
 
   - name: Defining the Overcloud ComputeHCI nodes
@@ -48,6 +53,7 @@
     run_once: True
     when:
       - item.is_hci == "true"
+      - item.state == "present"
     with_items: "{{ compute_nodes }}"
 
   - name: Defining the Overcloud Compute nodes
@@ -58,6 +64,7 @@
     run_once: True
     when:
       - not item.is_hci == "true"
+      - item.state == "present"
     with_items: "{{ compute_nodes }}"
 
   # TODO: check ip address available in the hypervisor
@@ -67,5 +74,7 @@
       vbmc start "{{ item.name }}"
     delegate_to: "{{ item.hypervisor_name }}"
     run_once: True
+    when:
+      - item.state == "present"
     with_items: "{{ compute_nodes }}"
 

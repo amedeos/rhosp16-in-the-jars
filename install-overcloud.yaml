@@ -58,6 +58,7 @@
       #openstack baremetal node set {{ item.name }} --property capabilities=profile:compute,boot_option:local
     when:
       - item.is_hci == "true"
+      - item.state == "present"
     with_items:
       - "{{ compute_nodes }}"
 
@@ -68,6 +69,7 @@
       #openstack baremetal node set {{ item.name }} --property capabilities=profile:compute,boot_option:local
     when:
       - not item.is_hci == "true"
+      - item.state == "present"
     with_items:
       - "{{ compute_nodes }}"
 

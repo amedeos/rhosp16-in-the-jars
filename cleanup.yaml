@@ -27,7 +27,9 @@
       - "{{ undercloud_nodes }}"
       - "{{ controller_nodes }}"
       - "{{ compute_nodes }}"
-    when: item.hypervisor_name != "localhost"
+    when:
+      - item.hypervisor_name != "localhost"
+      - item.state == "present"
 
 - name: Clean undercloud
   hosts: undercloud
@@ -57,6 +59,8 @@
       state: destroyed
     delegate_to: "{{ item.hypervisor_name }}"
     run_once: True
+    when:
+      - item.state == "present"
     with_items:
       - "{{ undercloud_nodes }}"
       - "{{ controller_nodes }}"
@@ -69,6 +73,8 @@
       command: undefine
     delegate_to: "{{ item.hypervisor_name }}"
     run_once: True
+    when:
+      - item.state == "present"
     with_items:
       - "{{ undercloud_nodes }}"
       - "{{ controller_nodes }}"
@@ -95,6 +101,8 @@
       state: absent
     delegate_to: "{{ item.hypervisor_name }}"
     run_once: True
+    when:
+      - item.state == "present"
     with_items:
       - "{{ undercloud_nodes }}"
       - "{{ controller_nodes }}"
@@ -107,6 +115,8 @@
       state: absent
     delegate_to: "{{ item.hypervisor_name }}"
     run_once: True
+    when:
+      - item.state == "present"
     with_items:
       - "{{ compute_nodes }}"
     ignore_errors: True
@@ -117,6 +127,8 @@
       state: absent
     delegate_to: "{{ item.hypervisor_name }}"
     run_once: True
+    when:
+      - item.state == "present"
     with_items:
       - "{{ compute_nodes }}"
     ignore_errors: True
@@ -127,6 +139,8 @@
       state: absent
     delegate_to: "{{ item.hypervisor_name }}"
     run_once: True
+    when:
+      - item.state == "present"
     with_items:
       - "{{ compute_nodes }}"
     ignore_errors: True
@@ -181,6 +195,8 @@
     ignore_errors: True
     delegate_to: "{{ item.hypervisor_name }}"
     run_once: True
+    when:
+      - item.state == "present"
     with_items:
       - "{{ undercloud_nodes }}"
       - "{{ controller_nodes }}"
