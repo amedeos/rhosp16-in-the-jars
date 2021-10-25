@@ -55,8 +55,8 @@ controller_memory: 16384
 controller_cpu: 2
 compute_memory: 32768
 compute_cpu: 6
-computehci_memory: 20480
-computehci_cpu: 4
+computehci_memory: 32768
+computehci_cpu: 6
 ceph_memory: 12288
 ceph_cpu: 2
 #lb_memory: 8192
