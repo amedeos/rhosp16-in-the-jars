@@ -1,0 +1,101 @@
+- name:  Add Undercloud VM/Node
+  hosts: localhost
+  vars_files:
+    - variables.yaml
+    - overcloud-ansible-nodes.json
+  gather_facts: no
+  tasks:
+  - name: Add undercloud group-host
+    add_host:
+      name: "{{ undercloud_n }}.{{ domain }}"
+      ansible_ssh_user: stack
+      ansible_ssh_pass: "{{ secure_password }}"
+      ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand="ssh -W %h:%p -q {{ item.hypervisor_user }}@{{ item.hypervisor_name }}"'
+      groups:
+        - undercloud
+    with_items:
+      - "{{ undercloud_nodes }}"
+
+- name:  Create objects for shiftstack
+  hosts: undercloud
+  vars_files:
+    - variables.yaml
+    - overcloud-ansible-nodes.json
+  gather_facts: no
+  tasks:
+  - name: Create working directory
+    file:
+      path: /home/stack/shiftstack
+      state: directory
+      mode: 0755
+      owner: stack
+      group: stack
+
+  - name: Get the admin password
+    shell: |
+      source /home/stack/stackrc
+      openstack stack environment show overcloud | egrep '\s+AdminPassword:' | awk '{print $2}'
+    register: admin_password
+
+  - name: Get the CloudName
+    shell: |
+      source /home/stack/stackrc
+      openstack stack environment show overcloud | egrep '\s+CloudName:' | awk '{print $2}'
+    register: cloud_name
+
+  - name: Create clouds.yaml
+    copy:
+      dest: /home/stack/shiftstack/clouds.yaml
+      owner: stack
+      group: stack
+      mode: 0640
+      content: |
+        clouds:
+          rhosp_admin:
+            region_name: regionOne
+            auth:
+              auth_url: https://{{ cloud_name.stdout }}:13000
+              username: admin
+              user_domain_name: 'Default'
+              password: {{ admin_password.stdout }}
+              project_name: 'admin'
+              project_domain_name: 'Default'
+          shiftstack:
+            region_name: regionOne
+            auth:
+              auth_url: https://{{ cloud_name.stdout }}:13000
+              cacert: "/etc/pki/ca-trust/source/anchors/ca.crt.pem"
+              username: shiftstack_user
+              user_domain_name: 'Default'
+              password: {{ secure_password }}
+              project_name: 'shiftstack'
+              project_domain_name: 'Default'
+
+  - name: Copy pull-secret
+    copy:
+      dest: /home/stack/shiftstack/pull-secret
+      src: ansible-templates/home/stack/shiftstack/pull-secret
+      mode: 0600
+      owner: stack
+      group: stack
+
+  - name: Copying openshift-install
+    get_url:
+      url: "{{ openshift_install_location }}"
+      dest: /home/stack/shiftstack/openshift-install
+      mode: '0755'
+      owner: stack
+      group: stack
+
+  - name: Inject playbook
+    template:
+      dest: /home/stack/shiftstack/create-objects.yaml
+      src: ansible-templates/home/stack/shiftstack/create-objects.yaml
+      owner: stack
+      group: stack
+      mode: 0644
+
+  - name: Execute the injected playbook
+    shell: |
+      cd /home/stack/shiftstack
+      ansible-playbook create-objects.yaml | tee -a /home/stack/shiftstack/create-objects-$(date +%Y-%m-%d-%H%M%S).log

@@ -102,3 +102,6 @@ fip_gw: 192.168.207.1
 fip_instance_1: 192.168.207.211
 fip_instance_2: 192.168.207.212
 skip_registration: False
+##### shiftstack
+openshift_install_location: http://192.168.1.70/images/ocp/openshift-install
+##### shiftstack

@@ -1,0 +1,70 @@
+- name:  Create RHOSP Objects for RHOCP
+  hosts: localhost
+  gather_facts: no
+  tasks:
+  - name: Create shiftstack project
+    os_project:
+      cloud: rhosp_admin
+      endpoint_type: admin
+      state: present
+      name: shiftstack
+      description: Red Hat OpenShift Platform project
+      domain_id: Default
+      enabled: True
+
+  - name: Update shiftstack quotas
+    os_quota:
+      cloud: rhosp_admin
+      name: shiftstack
+      floatingip: 50
+      floating_ips: 50
+      port: 1500
+      router: 10
+      subnet: 250
+      network: 250
+      ram: 122880
+      cores: 50
+      gigabytes: 500
+      volumes: 100
+      instances: 10
+      security_group: 250
+      security_group_rule: 1000
+      loadbalancer: 100
+      pool: 500
+
+  - name: Fix loadbalancer quotas
+    shell: |
+      source /home/stack/overcloudrc
+      openstack loadbalancer quota set --loadbalancer 100 --listener 500 --pool 500 shiftstack
+
+  - name: Create flavor m1.shiftstack
+    shell: |
+      source /home/stack/overcloudrc
+      openstack flavor create --public --ram 16384 --vcpus 4 --disk 25 m1.shiftstack
+      exit 0
+
+  - name: Create shiftstack_user
+    os_user:
+      cloud: rhosp_admin
+      state: present
+      name: shiftstack_user
+      password: {{  secure_password }}
+      domain: Default
+      default_project: shiftstack
+
+  - name: Assign member role to shiftstack_user
+    os_user_role:
+      cloud: rhosp_admin
+      user: shiftstack_user
+      role: member
+      project: shiftstack
+      domain: Default
+
+  - name: Assign swiftoperator role to shiftstack_user
+    os_user_role:
+      cloud: rhosp_admin
+      user: shiftstack_user
+      role: swiftoperator
+      project: shiftstack
+      domain: Default
+
