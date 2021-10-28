@@ -99,3 +99,54 @@
     shell: |
       cd /home/stack/shiftstack
       ansible-playbook create-objects.yaml | tee -a /home/stack/shiftstack/create-objects-$(date +%Y-%m-%d-%H%M%S).log
+
+  - name: Set images directory
+    set_fact:
+      images_dir: "/home/stack/shiftstack/rhocsimage"
+
+  - name: Create images directory
+    file:
+      path: "{{ images_dir }}"
+      state: directory
+      mode: 0755
+
+  - name: Download compressed RHCOS image
+    get_url:
+      url: "{{ rhcos_url }}"
+      dest: "{{ images_dir }}/{{ rhcos_compressed_filename }}"
+    register: rhcos
+
+  - name: Uncompress RHCOS image
+    shell: |
+      set -ex -o pipefail
+      uncompressed=${rhcos_compressed_path%%.gz}
+      if [ ! -f "${uncompressed}" ]; then
+        gzip -dfc "${rhcos_compressed_path}" > "${uncompressed}"
+      fi
+      echo ${uncompressed}
+    environment:
+      rhcos_compressed_path: "{{ images_dir }}/{{ rhcos_compressed_filename }}"
+    register: uncompress
+
+  - name: Extract uncompressed RHCOS filename
+    set_fact:
+      rhcos_uncompressed_path: "{{ uncompress.stdout }}"
+
+  - name: Import RHCOS image
+    shell: |
+      source /home/stack/overcloudrc
+      set -ex -o pipefail
+
+      # Get hash of existing rhcos image if we have one. Be careful not to fail
+      # if it doesn't exist, just set an empty variable.
+      os_hash_value=$(openstack image show rhcos -c properties -f json | jq -re '.properties.os_hash_value' || echo)
+
+      # Delete the rhcos image if its checksum doesn't match what we downloaded
+      if [ ! -z "${os_hash_value}" ] && \
+         ! echo "${os_hash_value} {{ rhcos_uncompressed_path }}" | sha512sum -c; then
+        openstack image delete rhcos
+      fi
+
+      if ! openstack image show rhcos >/dev/null; then
+        openstack image create rhcos --container-format bare --disk-format qcow2 --public --file "{{ rhcos_uncompressed_path }}"
+      fi

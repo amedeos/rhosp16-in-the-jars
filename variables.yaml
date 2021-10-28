@@ -104,4 +104,7 @@ fip_instance_2: 192.168.207.212
 skip_registration: False
 ##### shiftstack
 openshift_install_location: http://192.168.1.70/images/ocp/openshift-install
+#rhcos_url: https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/4.9/latest/rhcos-openstack.x86_64.qcow2.gz
+rhcos_url: http://192.168.1.70/images/ocp/rhcos-openstack.x86_64.qcow2.gz
+rhcos_compressed_filename: rhcos-openstack.x86_64.qcow2.gz
 ##### shiftstack
