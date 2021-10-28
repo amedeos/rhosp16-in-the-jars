@@ -11,6 +11,7 @@
       description: Red Hat OpenShift Platform project
       domain_id: Default
       enabled: True
+    register: project_shiftstack
 
   - name: Update shiftstack quotas
     os_quota:
@@ -67,4 +68,15 @@
       role: swiftoperator
       project: shiftstack
       domain: Default
+  # https://github.com/shiftstack/dev-install/blob/main/playbooks/prepare_stack.yaml#L203
+  - name: Disable snapshot support on pre-Wallaby Manila
+    shell: |
+      source /home/stack/overcloudrc
+      manila type-key default set snapshot_support=False
 
+  - name: Increase default quotas for shares and snapshots
+    shell: |
+      source /home/stack/overcloudrc
+      PROJECT_ID=$(openstack project list --domain Default | grep shiftstack | awk '{ print $2 }')
+      echo "Found project id: ${PROJECT_ID}"
+      manila quota-update --shares 150 --snapshots 150 "${PROJECT_ID}"
